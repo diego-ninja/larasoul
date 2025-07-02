@@ -24,7 +24,7 @@ final class SessionClient extends Client implements SessionInterface
             ],
             [
                 'account' => $account->toArray(),
-                'session_id' => $sessionId
+                'session_id' => $sessionId,
             ]
         );
 
@@ -43,7 +43,7 @@ final class SessionClient extends Client implements SessionInterface
                 'accounts_linked' => $accountsLinked,
             ],
             [
-                'session_id' => $sessionId
+                'session_id' => $sessionId,
             ]
         );
 

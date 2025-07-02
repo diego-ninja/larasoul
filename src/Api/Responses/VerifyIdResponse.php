@@ -22,7 +22,7 @@ use Ninja\Larasoul\Enums\VerisoulDecision;
 final readonly class VerifyIdResponse extends ApiResponse
 {
     /**
-     * @param Collection<RiskFlag> $riskFlags
+     * @param  Collection<RiskFlag>  $riskFlags
      */
     public function __construct(
         public Metadata $metadata,
@@ -43,9 +43,9 @@ final readonly class VerifyIdResponse extends ApiResponse
      */
     public function isSuccessful(): bool
     {
-        return VerisoulDecision::Real === $this->decision &&
+        return $this->decision === VerisoulDecision::Real &&
             $this->riskScore <= 0.3 &&
-            !$this->hasBlockingRiskFlags();
+            ! $this->hasBlockingRiskFlags();
     }
 
     /**
@@ -53,7 +53,7 @@ final readonly class VerifyIdResponse extends ApiResponse
      */
     public function shouldReject(): bool
     {
-        return VerisoulDecision::Fake === $this->decision ||
+        return $this->decision === VerisoulDecision::Fake ||
             $this->riskScore >= 0.8 ||
             $this->hasBlockingRiskFlags();
     }
@@ -63,7 +63,7 @@ final readonly class VerifyIdResponse extends ApiResponse
      */
     public function requiresManualReview(): bool
     {
-        return VerisoulDecision::Suspicious === $this->decision ||
+        return $this->decision === VerisoulDecision::Suspicious ||
             ($this->riskScore >= 0.4 && $this->riskScore < 0.8) ||
             $this->hasModerateRiskFlags();
     }
@@ -73,7 +73,7 @@ final readonly class VerifyIdResponse extends ApiResponse
      */
     public function hasBlockingRiskFlags(): bool
     {
-        return $this->riskFlags->some(fn($flag) => $flag->shouldBlock());
+        return $this->riskFlags->some(fn ($flag) => $flag->shouldBlock());
     }
 
     /**
@@ -81,7 +81,7 @@ final readonly class VerifyIdResponse extends ApiResponse
      */
     public function hasModerateRiskFlags(): bool
     {
-        return $this->riskFlags->some(fn($flag) => $flag->getRiskLevel() === 'medium');
+        return $this->riskFlags->some(fn ($flag) => $flag->getRiskLevel() === 'medium');
     }
 
     /**
@@ -92,11 +92,12 @@ final readonly class VerifyIdResponse extends ApiResponse
         $categories = [];
         foreach ($this->riskFlags as $flag) {
             $category = $flag->getCategory();
-            if (!isset($categories[$category])) {
+            if (! isset($categories[$category])) {
                 $categories[$category] = [];
             }
             $categories[$category][] = $flag;
         }
+
         return $categories;
     }
 
@@ -108,7 +109,7 @@ final readonly class VerifyIdResponse extends ApiResponse
         $levels = [];
         $this->riskFlags->each(function (RiskFlag $flag) use (&$levels) {
             $level = $flag->getRiskLevel();
-            if (!isset($levels[$level])) {
+            if (! isset($levels[$level])) {
                 $levels[$level] = [];
             }
             $levels[$level][] = $flag;
@@ -122,7 +123,7 @@ final readonly class VerifyIdResponse extends ApiResponse
      */
     public function hasRiskFlag(RiskFlag $flag): bool
     {
-        return $this->riskFlags->contains(fn(RiskFlag $riskFlag) => $riskFlag === $flag);
+        return $this->riskFlags->contains(fn (RiskFlag $riskFlag) => $riskFlag === $flag);
     }
 
     /**
@@ -130,6 +131,6 @@ final readonly class VerifyIdResponse extends ApiResponse
      */
     public function getRiskFlagsAsStrings(): array
     {
-        return $this->riskFlags->map(fn(RiskFlag $flag) => $flag->value)->toArray();
+        return $this->riskFlags->map(fn (RiskFlag $flag) => $flag->value)->toArray();
     }
 }

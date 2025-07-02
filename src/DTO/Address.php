@@ -59,7 +59,7 @@ final readonly class Address extends Bag
     public function getCompletionPercentage(): float
     {
         $fields = [$this->street, $this->city, $this->state, $this->postalCode, $this->country];
-        $filledFields = count(array_filter($fields, fn($field) => ! empty($field)));
+        $filledFields = count(array_filter($fields, fn ($field) => ! empty($field)));
 
         return round(($filledFields / count($fields)) * 100, 1);
     }

@@ -35,5 +35,4 @@ interface VerisoulApi
      * Get current base URL based on environment
      */
     public function getBaseUrl(): string;
-
 }

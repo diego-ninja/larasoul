@@ -10,5 +10,6 @@ use Ninja\Larasoul\Enums\LivenessSession;
 interface BiometricInterface
 {
     public function session(LivenessSession $sessionType, ?string $referringSessionId = null): ?LivenessSessionResponse;
+
     public function enroll(string $sessionId, Authenticatable $user): EnrollAccountResponse;
 }

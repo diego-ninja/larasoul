@@ -2,8 +2,7 @@
 
 namespace Ninja\Larasoul\Api\Clients;
 
-use Ninja\Larasoul\Api\Responses\CreateListResponse;
-use Ninja\Larasoul\Api\Responses\DeleteListResponse;
+use Ninja\Larasoul\Api\Responses\ListOperationResponse;
 use Ninja\Larasoul\Collections\AccountListCollection;
 use Ninja\Larasoul\Contracts\ListInterface;
 use Ninja\Larasoul\DTO\AccountList;
@@ -17,7 +16,7 @@ final class ListClient extends Client implements ListInterface
      * @throws VerisoulApiException
      * @throws VerisoulConnectionException
      */
-    public function createList(string $name, string $description): CreateListResponse
+    public function createList(string $name, string $description): ListOperationResponse
     {
         $response = $this->call(
             VerisoulApiEndpoint::ListCreate,
@@ -25,13 +24,12 @@ final class ListClient extends Client implements ListInterface
             ['list_description' => $description]
         );
 
-        return CreateListResponse::from($response);
+        return ListOperationResponse::from($response);
     }
 
     /**
      * @throws VerisoulApiException
      * @throws VerisoulConnectionException
-     * @return AccountListCollection
      */
     public function getAllLists(): AccountListCollection
     {
@@ -39,6 +37,7 @@ final class ListClient extends Client implements ListInterface
 
         /** @var AccountListCollection $collection */
         $collection = AccountList::collect($response);
+
         return $collection;
     }
 
@@ -60,38 +59,41 @@ final class ListClient extends Client implements ListInterface
      * @throws VerisoulApiException
      * @throws VerisoulConnectionException
      */
-    public function addAccountToList(string $listName, string $accountId, array $data = []): array
+    public function addAccountToList(string $listName, string $accountId): ListOperationResponse
     {
-        return $this->call(
+        $response = $this->call(
             VerisoulApiEndpoint::ListAddAccount,
             ['list_name' => $listName, 'account_id' => $accountId],
-            $data
         );
+
+        return ListOperationResponse::from($response);
     }
 
     /**
      * @throws VerisoulApiException
      * @throws VerisoulConnectionException
      */
-    public function deleteList(string $listName): DeleteListResponse
+    public function deleteList(string $listName): ListOperationResponse
     {
         $response = $this->call(
             VerisoulApiEndpoint::ListDelete,
             ['list_name' => $listName]
         );
 
-        return DeleteListResponse::from($response);
+        return ListOperationResponse::from($response);
     }
 
     /**
      * @throws VerisoulApiException
      * @throws VerisoulConnectionException
      */
-    public function removeAccountFromList(string $listName, string $accountId): array
+    public function removeAccountFromList(string $listName, string $accountId): ListOperationResponse
     {
-        return $this->call(
+        $response = $this->call(
             VerisoulApiEndpoint::ListRemoveAccount,
             ['list_name' => $listName, 'account_id' => $accountId]
         );
+
+        return ListOperationResponse::from($response);
     }
 }

@@ -8,7 +8,6 @@ use Bag\Bag;
 use Bag\Mappers\SnakeCase;
 use Ninja\Larasoul\Enums\IDBarcodeStatus;
 use Ninja\Larasoul\Enums\IDDigitalSpoof;
-use Ninja\Larasoul\Enums\DocumentSignalStatus;
 use Ninja\Larasoul\Enums\IDFaceStatus;
 use Ninja\Larasoul\Enums\IDStatus;
 use Ninja\Larasoul\Enums\IDTextStatus;
@@ -19,13 +18,13 @@ use Ninja\Larasoul\Enums\IDValidity;
 final readonly class DocumentSignals extends Bag
 {
     public function __construct(
-        public int                  $idAge,
-        public float                $idFaceMatchScore,
-        public IDBarcodeStatus      $idBarcodeStatus,
-        public IDFaceStatus         $idFaceStatus,
-        public IDTextStatus         $idTextStatus,
-        public IDDigitalSpoof       $isIdDigitalSpoof,
-        public IDStatus             $isFullIdCaptured,
-        public IDValidity           $idValidity,
+        public int $idAge,
+        public float $idFaceMatchScore,
+        public IDBarcodeStatus $idBarcodeStatus,
+        public IDFaceStatus $idFaceStatus,
+        public IDTextStatus $idTextStatus,
+        public IDDigitalSpoof $isIdDigitalSpoof,
+        public IDStatus $isFullIdCaptured,
+        public IDValidity $idValidity,
     ) {}
 }

@@ -18,11 +18,12 @@ final class IDCheckClient extends LivenessApiClient implements IDCheckInterface
      */
     public function session(LivenessSession $sessionType, ?string $referringSessionId = null): ?LivenessSessionResponse
     {
-        $params = null !== $referringSessionId ?
+        $params = $referringSessionId !== null ?
             ['referring_session_id' => $referringSessionId] :
             [];
 
         $response = $this->call(VerisoulApiEndpoint::SessionStart, array_merge($params, ['id' => 'true']));
+
         return LivenessSessionResponse::from($response);
     }
 

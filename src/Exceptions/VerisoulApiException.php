@@ -29,7 +29,7 @@ class VerisoulApiException extends Exception
     public static function authenticationFailed(string $endpoint): self
     {
         return new self(
-            message: "Authentication failed for Verisoul API",
+            message: 'Authentication failed for Verisoul API',
             statusCode: 401,
             endpoint: $endpoint,
         );
@@ -50,7 +50,7 @@ class VerisoulApiException extends Exception
     public static function serverError(string $endpoint, int $statusCode, array $response): self
     {
         return new self(
-            message: "Verisoul API server error",
+            message: 'Verisoul API server error',
             statusCode: $statusCode,
             response: $response,
             endpoint: $endpoint,
@@ -60,7 +60,7 @@ class VerisoulApiException extends Exception
     public static function rateLimitExceeded(string $endpoint, array $response): self
     {
         return new self(
-            message: "Rate limit exceeded for Verisoul API",
+            message: 'Rate limit exceeded for Verisoul API',
             statusCode: 429,
             response: $response,
             endpoint: $endpoint,

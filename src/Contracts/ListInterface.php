@@ -2,8 +2,7 @@
 
 namespace Ninja\Larasoul\Contracts;
 
-use Ninja\Larasoul\Api\Responses\CreateListResponse;
-use Ninja\Larasoul\Api\Responses\DeleteListResponse;
+use Ninja\Larasoul\Api\Responses\ListOperationResponse;
 use Ninja\Larasoul\Collections\AccountListCollection;
 use Ninja\Larasoul\DTO\AccountList;
 
@@ -12,7 +11,7 @@ interface ListInterface
     /**
      * Create new list
      */
-    public function createList(string $name, string $description): CreateListResponse;
+    public function createList(string $name, string $description): ListOperationResponse;
 
     /**
      * Get all lists
@@ -27,15 +26,15 @@ interface ListInterface
     /**
      * Add account to list
      */
-    public function addAccountToList(string $listName, string $accountId, array $data = []): array;
+    public function addAccountToList(string $listName, string $accountId): ListOperationResponse;
 
     /**
      * Delete list
      */
-    public function deleteList(string $listName): DeleteListResponse;
+    public function deleteList(string $listName): ListOperationResponse;
 
     /**
      * Remove account from list
      */
-    public function removeAccountFromList(string $listName, string $accountId): array;
+    public function removeAccountFromList(string $listName, string $accountId): ListOperationResponse;
 }

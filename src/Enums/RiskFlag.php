@@ -58,7 +58,7 @@ enum RiskFlag: string
      */
     public static function getByCategory(string $category): array
     {
-        return array_filter(self::cases(), fn($flag) => $flag->getCategory() === $category);
+        return array_filter(self::cases(), fn ($flag) => $flag->getCategory() === $category);
     }
 
     /**
@@ -66,7 +66,7 @@ enum RiskFlag: string
      */
     public static function getByRiskLevel(string $level): array
     {
-        return array_filter(self::cases(), fn($flag) => $flag->getRiskLevel() === $level);
+        return array_filter(self::cases(), fn ($flag) => $flag->getRiskLevel() === $level);
     }
 
     /**
@@ -74,7 +74,7 @@ enum RiskFlag: string
      */
     public static function getBlockingFlags(): array
     {
-        return array_filter(self::cases(), fn($flag) => $flag->shouldBlock());
+        return array_filter(self::cases(), fn ($flag) => $flag->shouldBlock());
     }
 
     /**

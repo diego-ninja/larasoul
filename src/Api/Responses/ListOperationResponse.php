@@ -8,8 +8,7 @@ use Bag\Mappers\SnakeCase;
 
 #[MapInputName(SnakeCase::class)]
 #[MapOutputName(SnakeCase::class)]
-
-final readonly class DeleteListResponse extends ApiResponse
+final readonly class ListOperationResponse extends ApiResponse
 {
     public function __construct(
         public string $requestId,

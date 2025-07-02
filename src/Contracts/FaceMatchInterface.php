@@ -9,6 +9,6 @@ use Ninja\Larasoul\Api\Responses\VerifyIdentityResponse;
 interface FaceMatchInterface extends BiometricInterface
 {
     public function verifyFace(string $sessionId): VerifyFaceResponse;
-    public function verifyIdentity(string $sessionId, Authenticatable $user): VerifyIdentityResponse;
 
+    public function verifyIdentity(string $sessionId, Authenticatable $user): VerifyIdentityResponse;
 }

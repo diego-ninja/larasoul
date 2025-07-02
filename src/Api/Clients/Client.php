@@ -18,9 +18,13 @@ use Ninja\Larasoul\Exceptions\VerisoulConnectionException;
 abstract class Client implements VerisoulApi
 {
     private string $apiKey;
+
     private VerisoulEnvironment $environment;
+
     private int $timeout;
+
     private int $retryAttempts;
+
     private int $retryDelay;
 
     public function __construct(
@@ -81,12 +85,14 @@ abstract class Client implements VerisoulApi
     public function setApiKey(string $apiKey): self
     {
         $this->apiKey = $apiKey;
+
         return $this;
     }
 
     public function setEnvironment(VerisoulEnvironment $environment): self
     {
         $this->environment = $environment;
+
         return $this;
     }
 
@@ -117,13 +123,15 @@ abstract class Client implements VerisoulApi
             default => throw new VerisoulApiException("Unsupported HTTP method: {$method}"),
         };
     }
+
     /**
      * Make HTTP request with retry logic and error handling
+     *
      * @throws VerisoulConnectionException|VerisoulApiException
      */
     private function makeRequest(string $method, string $endpoint, array $data = [], array $headers = []): array
     {
-        $url = $this->getBaseUrl() . $endpoint;
+        $url = $this->getBaseUrl().$endpoint;
         $headers = $this->buildHeaders($headers);
 
         $this->logRequest($method, $endpoint, $data);
@@ -150,6 +158,7 @@ abstract class Client implements VerisoulApi
 
                 $this->sleep();
                 $attempt++;
+
                 continue;
 
             } catch (RequestException $e) {
@@ -158,7 +167,7 @@ abstract class Client implements VerisoulApi
                 $this->logError($endpoint, $lastException, $attempt + 1);
 
                 // Don't retry on 4xx errors except 429 (rate limit)
-                if ($response->status() >= 400 && $response->status() < 500 && 429 !== $response->status()) {
+                if ($response->status() >= 400 && $response->status() < 500 && $response->status() !== 429) {
                     throw $lastException;
                 }
 
@@ -168,6 +177,7 @@ abstract class Client implements VerisoulApi
 
                 $this->sleep();
                 $attempt++;
+
                 continue;
 
             } catch (Exception $e) {
@@ -180,6 +190,7 @@ abstract class Client implements VerisoulApi
 
                 $this->sleep();
                 $attempt++;
+
                 continue;
             }
         }
@@ -189,6 +200,7 @@ abstract class Client implements VerisoulApi
 
     /**
      * Perform the actual HTTP request
+     *
      * @throws ConnectionException
      */
     private function performRequest(string $method, string $url, array $data, array $headers): Response
@@ -208,17 +220,18 @@ abstract class Client implements VerisoulApi
 
     /**
      * Handle HTTP response and validate
+     *
      * @throws VerisoulApiException
      */
     private function handleResponse(Response $response, string $endpoint): array
     {
-        if ( ! $response->successful()) {
+        if (! $response->successful()) {
             throw $this->createApiException($endpoint, $response);
         }
 
         $data = $response->json();
 
-        if ( ! is_array($data)) {
+        if (! is_array($data)) {
             throw VerisoulApiException::invalidResponse($endpoint, 'Response is not valid JSON');
         }
 

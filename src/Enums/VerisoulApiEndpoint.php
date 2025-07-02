@@ -66,7 +66,7 @@ enum VerisoulApiEndpoint
         $endpoint = $this->url();
 
         foreach ($parameters as $key => $value) {
-            $endpoint = str_replace('{' . $key . '}', $value, $endpoint);
+            $endpoint = str_replace('{'.$key.'}', $value, $endpoint);
         }
 
         return $endpoint;
@@ -86,7 +86,7 @@ enum VerisoulApiEndpoint
             self::SessionStart,
             self::ListGetAll,
             self::ListGet => 'GET',
-            
+
             // POST endpoints
             self::SessionAuthenticate,
             self::SessionUnauthenticated,
@@ -97,10 +97,10 @@ enum VerisoulApiEndpoint
             self::VerifyPhone,
             self::ListCreate,
             self::ListAddAccount => 'POST',
-            
+
             // PUT endpoints
             self::AccountUpdate => 'PUT',
-            
+
             // DELETE endpoints
             self::AccountDelete,
             self::ListDelete,

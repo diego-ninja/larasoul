@@ -33,7 +33,7 @@ final class AccountClient extends Client implements AccountInterface
      */
     public function getAccountSessions(string $accountId): AccountSessionsResponse
     {
-       $response = $this->call(
+        $response = $this->call(
             VerisoulApiEndpoint::AccountSessions,
             ['account_id' => $accountId]
         );

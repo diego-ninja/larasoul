@@ -14,18 +14,18 @@ use Ninja\Larasoul\Exceptions\VerisoulConnectionException;
 
 final class FaceMatchClient extends LivenessApiClient implements FaceMatchInterface
 {
-
     /**
      * @throws VerisoulApiException
      * @throws VerisoulConnectionException
      */
     public function session(LivenessSession $sessionType, ?string $referringSessionId = null): ?LivenessSessionResponse
     {
-        $params = null !== $referringSessionId ?
+        $params = $referringSessionId !== null ?
             ['referring_session_id' => $referringSessionId] :
             [];
 
         $response = $this->call(VerisoulApiEndpoint::SessionStart, $params);
+
         return LivenessSessionResponse::from($response);
     }
 
@@ -56,5 +56,4 @@ final class FaceMatchClient extends LivenessApiClient implements FaceMatchInterf
 
         return VerifyIdentityResponse::from($response);
     }
-
 }

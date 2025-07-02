@@ -2,7 +2,6 @@
 
 namespace Ninja\Larasoul\Contracts;
 
-use Ninja\Larasoul\Api\Responses\AccountResponse;
 use Ninja\Larasoul\Api\Responses\SessionResponse;
 use Ninja\Larasoul\DTO\Account;
 

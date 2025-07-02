@@ -15,6 +15,5 @@ final readonly class VerifyPhoneResponse extends ApiResponse
         public string $projectId,
         public string $requestId,
         public Phone $phone,
-    ) {
-    }
+    ) {}
 }
