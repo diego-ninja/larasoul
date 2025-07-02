@@ -1,0 +1,25 @@
+{
+    "name": "diego-ninja/larasoul",
+    "description": "A Verisoul integration for Laravel 10+",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Ninja\\Larasoul\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Diego Rin",
+            "email": "yosoy@diego.ninja"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+      "php": "^8.2",
+      "laravel/framework": "^12.0",
+      "laravel/tinker": "^2.10.1",
+      "nesbot/carbon": "^3.10",
+        "dshafik/bag": "^2.5"
+    }
+}

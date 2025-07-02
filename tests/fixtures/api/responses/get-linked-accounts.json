@@ -1,0 +1,34 @@
+{
+  "request_id": "9b3f35c7-a4e6-4762-91db-b026bfe46e9c",
+  "accounts_linked": [
+    {
+      "account_id": "john-doe-1",
+      "score": 0.1085,
+      "match_type": [
+        "network",
+        "email",
+        "browser",
+        "device"
+      ],
+      "email": "john.doe@example.com",
+      "lists": [
+        "us_users"
+      ],
+      "metadata": {}
+    },
+    {
+      "account_id": "john-doe-2",
+      "score": 0.1085,
+      "match_type": [
+        "network",
+        "email",
+        "browser"
+      ],
+      "email": "john.doe2@example.com",
+      "lists": [
+        "us_users"
+      ],
+      "metadata": {}
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "account_ids": [
+    "john-doe"
+  ],
+  "request_id": "7c1fb7c5-8e5f-43f0-b35e-56b9698dac0f",
+  "project_id": "00000000-0000-0000-0000-000000000001",
+  "session_id": "56f9a065-1583-48af-a5c4-cd5921b21a12",
+  "start_time": "2025-06-10T16:45:21.822Z",
+  "true_country_code": "US",
+  "network": {
+    "ip_address": "2600:1700:261:b810:8828:f0b6:3b95:667c",
+    "service_provider": "AT&T Enterprises, LLC",
+    "connection_type": "isp"
+  },
+  "location": {
+    "continent": "NA",
+    "country_code": "US",
+    "state": "Texas",
+    "city": "Austin",
+    "zip_code": "78729",
+    "timezone": "America/Chicago",
+    "latitude": 30.4521,
+    "longitude": -97.7688
+  },
+  "browser": {
+    "type": "Chrome",
+    "version": "137.0.0.0",
+    "language": "en-US",
+    "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36",
+    "timezone": "America/Chicago"
+  },
+  "device": {
+    "category": "desktop",
+    "type": "Mac",
+    "os": "macOS 10.15.7",
+    "cpu_cores": 16,
+    "memory": 8,
+    "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M4 Max, Unspecified Version)",
+    "screen_height": 1329,
+    "screen_width": 2056
+  },
+  "bot": {
+    "mouse_num_events": 84,
+    "click_num_events": 2,
+    "keyboard_num_events": 0,
+    "touch_num_events": 0,
+    "clipboard_num_events": 1
+  },
+  "risk_signals": {
+    "device_risk": false,
+    "proxy": false,
+    "vpn": false,
+    "tor": false,
+    "spoofed_ip": false,
+    "datacenter": false,
+    "recent_fraud_ip": false,
+    "impossible_travel": false,
+    "device_network_mismatch": false
+  },
+  "risk_signal_scores": {
+    "device_risk": 0.3971,
+    "proxy": 0,
+    "vpn": 0,
+    "tor": 0,
+    "datacenter": 0,
+    "recent_fraud_ip": 0,
+    "impossible_travel": 0,
+    "device_network_mismatch": 0.0001
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "project_id": "00000000-0000-0000-0000-000000000001",
+  "request_id": "81fca4e3-0111-45b8-a8eb-0c2b638e1d29",
+  "account": {
+    "id": "john-doe",
+    "email": "john.doe@example.com",
+    "metadata": {},
+    "group": ""
+  },
+  "num_sessions": 1,
+  "first_seen": "2025-06-10T16:47:29.661Z",
+  "last_seen": "2025-06-10T16:47:29.661Z",
+  "last_session": "56f9a065-1583-48af-a5c4-cd5921b21a12",
+  "country": "US",
+  "countries": [
+    "US"
+  ],
+  "decision": "Real",
+  "account_score": 0.2191,
+  "bot": 0,
+  "multiple_accounts": 0.2053,
+  "risk_signals": 0.2979,
+  "accounts_linked": 2,
+  "lists": [
+    "us_users"
+  ],
+  "unique_devices": {
+    "1_day": 1,
+    "7_day": 1
+  },
+  "unique_networks": {
+    "1_day": 1,
+    "7_day": 1
+  },
+  "email": {
+    "email": "john.doe@example.com",
+    "disposable": false,
+    "personal": false,
+    "valid": true
+  },
+  "risk_signal_average": {
+    "device_risk": 0.3971,
+    "proxy": 0,
+    "vpn": 0,
+    "tor": 0,
+    "spoofed_ip": 0,
+    "datacenter": 0,
+    "recent_fraud_ip": 0,
+    "impossible_travel": 0,
+    "device_network_mismatch": 0.0001
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "metadata": {
+    "project_id": "00000000-0000-0000-0000-000000000001",
+    "session_id": "00022d22-0592-4c83-8f55-0ec8f277c668",
+    "account_id": "john-doe-1",
+    "referring_session_id": "623d80c5-5266-4787-a5b8-7cd578379de4",
+    "request_id": "d4b414e2-5c18-4e8e-9426-a3b83564d6f1",
+    "timestamp": "2025-05-04T22:11:51.645Z"
+  },
+  "decision": "Fake",
+  "risk_score": 0.8,
+  "risk_flags": [
+    "repeat_face"
+  ],
+  "device_network_signals": {
+    "device_risk": 0.2429,
+    "proxy": 0,
+    "vpn": 0,
+    "datacenter": 0,
+    "tor": 0,
+    "spoofed_ip": 0,
+    "recent_fraud_ip": 0,
+    "device_network_mismatch": 0.0001,
+    "location_spoofing": 0.0001
+  },
+  "referring_session_signals": {
+    "impossible_travel": 0,
+    "ip_mismatch": 0,
+    "user_agent_mismatch": 0,
+    "device_timezone_mismatch": 0.2501,
+    "ip_timezone_mismatch": 0.0001
+  },
+  "photo_urls": {
+    "face": "https://storage.googleapis.com/facematch-sandbox/00022d22-0592-4c83-8f55-0ec8f277c668/face.jpg"
+  },
+  "session_data": {
+    "true_country_code": "US",
+    "network": {
+      "ip_address": "107.209.253.92",
+      "service_provider": "AT&T Internet",
+      "connection_type": "isp"
+    },
+    "location": {
+      "continent": "NA",
+      "country_code": "US",
+      "state": "Texas",
+      "city": "Austin",
+      "zip_code": "78758",
+      "timezone": "America/Chicago",
+      "latitude": 30.3773,
+      "longitude": -97.71
+    },
+    "browser": {
+      "type": "Chrome",
+      "version": "135.0.0.0",
+      "language": "en-US",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
+      "timezone": "America/Chicago"
+    },
+    "device": {
+      "category": "desktop",
+      "type": "Mac",
+      "os": "macOS 10.15.7",
+      "cpu_cores": 16,
+      "memory": 8,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M4 Max, Unspecified Version)"
+    }
+  },
+  "matches": {
+    "num_accounts_linked": 1,
+    "accounts_linked": [
+      {
+        "account_id": "john-doe-2",
+        "match_types": [
+          "face",
+          "ip_address"
+        ]
+      }
+    ]
+  }
+}
