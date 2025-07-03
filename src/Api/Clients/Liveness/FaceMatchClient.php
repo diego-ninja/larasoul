@@ -32,7 +32,7 @@ final class FaceMatchClient extends LivenessApiClient implements FaceMatchInterf
      * @throws VerisoulApiException
      * @throws VerisoulConnectionException
      */
-    public function verifyFace(string $sessionId): VerifyFaceResponse
+    public function verify(string $sessionId): VerifyFaceResponse
     {
         $response = $this->call(
             endpoint: VerisoulApiEndpoint::VerifyFace,

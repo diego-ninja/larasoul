@@ -5,6 +5,7 @@ namespace Ninja\Larasoul\Api\Responses;
 use Bag\Attributes\MapInputName;
 use Bag\Attributes\MapOutputName;
 use Bag\Mappers\SnakeCase;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Ninja\Larasoul\Enums\VerisoulEnvironment;
 
 #[MapInputName(SnakeCase::class)]
@@ -19,5 +20,17 @@ final readonly class LivenessSessionResponse extends ApiResponse
     public function redirectUrl(VerisoulEnvironment $environment = VerisoulEnvironment::Sandbox): string
     {
         return sprintf('https://app.%s.verisoul.ai/?session_id=%s', $environment->value, $this->sessionId);
+    }
+
+    public function asResource(): JsonResource
+    {
+        $environment = VerisoulEnvironment::from(config('larasoul.verisoul.environment'));
+
+        return JsonResource::make([
+            'request_id' => $this->requestId,
+            'session_id' => $this->sessionId,
+            'redirect_url' => $this->redirectUrl($environment),
+            'environment' => $environment->value,
+        ]);
     }
 }

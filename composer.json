@@ -14,6 +14,16 @@
             "email": "yosoy@diego.ninja"
         }
     ],
+    "extra": {
+      "laravel": {
+        "providers": [
+          "Ninja\\Larasoul\\Providers\\LarasoulServiceProvider"
+        ],
+        "aliases": {
+          "Verisoul": "Ninja\\Larasoul\\Facades\\Verisoul"
+        }
+      }
+    },
     "minimum-stability": "stable",
     "require": {
       "php": "^8.2",

@@ -3,8 +3,14 @@
 namespace Ninja\Larasoul\Contracts;
 
 use Ninja\Larasoul\Api\Responses\VerifyIdResponse;
+use Ninja\Larasoul\Exceptions\VerisoulApiException;
+use Ninja\Larasoul\Exceptions\VerisoulConnectionException;
 
 interface IDCheckInterface extends BiometricInterface
 {
-    public function verifyId(string $sessionId): VerifyIdResponse;
+    /**
+     * @throws VerisoulApiException
+     * @throws VerisoulConnectionException
+     */
+    public function verify(string $sessionId): VerifyIdResponse;
 }

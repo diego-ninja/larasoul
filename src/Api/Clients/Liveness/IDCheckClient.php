@@ -30,7 +30,7 @@ final class IDCheckClient extends LivenessApiClient implements IDCheckInterface
      * @throws VerisoulApiException
      * @throws VerisoulConnectionException
      */
-    public function verifyId(string $sessionId): VerifyIdResponse
+    public function verify(string $sessionId): VerifyIdResponse
     {
         $response = $this->call(
             endpoint: VerisoulApiEndpoint::VerifyId,

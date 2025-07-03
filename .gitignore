@@ -26,3 +26,5 @@ CLAUDE.md
 .claude
 tester.php
 composer.lock
+/package.json
+/package-lock.json

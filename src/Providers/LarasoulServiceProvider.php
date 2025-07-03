@@ -42,6 +42,8 @@ class LarasoulServiceProvider extends ServiceProvider
             $this->commands([
             ]);
         }
+
+        $this->loadRoutesFrom(__DIR__.'/../../routes/larasoul.php');
     }
 
     private function registerClients(): void
