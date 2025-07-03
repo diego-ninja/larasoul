@@ -21,5 +21,6 @@ final readonly class RiskSignalScore extends Bag
         public ?float $recentFraudIp = 0.0,
         public ?float $impossibleTravel = 0.0,
         public ?float $deviceNetworkMismatch = 0.0,
+        public ?float $locationSpoofing = 0.0,
     ) {}
 }

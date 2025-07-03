@@ -38,7 +38,7 @@ final class SessionClient extends Client implements SessionInterface
     public function unauthenticated(string $sessionId, bool $accountsLinked = false): SessionResponse
     {
         $response = $this->call(
-            VerisoulApiEndpoint::SessionAuthenticate,
+            VerisoulApiEndpoint::SessionUnauthenticated,
             [
                 'accounts_linked' => $accountsLinked,
             ],

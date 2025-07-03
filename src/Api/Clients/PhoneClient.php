@@ -17,8 +17,9 @@ final class PhoneClient extends Client implements PhoneInterface
     public function verifyPhone(string $phoneNumber): VerifyPhoneResponse
     {
         $response = $this->call(
-            endpoint: VerisoulApiEndpoint::VerifyPhone,
-            data: ['phone_number' => $phoneNumber],
+            VerisoulApiEndpoint::VerifyPhone,
+            [],
+            ['phone_number' => $phoneNumber]
         );
 
         return VerifyPhoneResponse::from($response);

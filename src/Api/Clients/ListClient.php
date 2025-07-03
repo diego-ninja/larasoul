@@ -34,9 +34,8 @@ final class ListClient extends Client implements ListInterface
     public function getAllLists(): AccountListCollection
     {
         $response = $this->call(VerisoulApiEndpoint::ListGetAll);
-
         /** @var AccountListCollection $collection */
-        $collection = AccountList::collect($response);
+        $collection = AccountList::collect($response['lists']);
 
         return $collection;
     }

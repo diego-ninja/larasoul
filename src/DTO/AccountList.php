@@ -15,7 +15,9 @@ use Ninja\Larasoul\Collections\AccountListCollection;
 final readonly class AccountList extends Bag
 {
     public function __construct(
-        public string $name,
+        public ?string $requestId,
+        public ?string $name,
         public ?string $description,
+        public array $accounts,
     ) {}
 }

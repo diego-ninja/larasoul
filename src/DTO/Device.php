@@ -18,7 +18,7 @@ final readonly class Device extends Bag
         public ?int $cpuCores,
         public ?int $memory,
         public ?string $gpu,
-        public float $screenHeight,
-        public float $screenWidth,
+        public ?float $screenHeight,
+        public ?float $screenWidth,
     ) {}
 }

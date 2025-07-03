@@ -4,7 +4,7 @@ namespace Ninja\Larasoul\Enums;
 
 enum VerisoulApiEndpoint
 {
-    // Account endpoints
+    // AccountClient endpoints
     case AccountGet;
     case AccountSessions;
     case AccountLinked;
@@ -17,7 +17,8 @@ enum VerisoulApiEndpoint
     case SessionGet;
 
     // Liveness endpoints
-    case SessionStart;
+    case FaceMatchSessionStart;
+    case IDCheckSessionStart;
     case Enroll;
     case VerifyFace;
     case VerifyIdentity;
@@ -40,21 +41,27 @@ enum VerisoulApiEndpoint
     public function url(): string
     {
         return match ($this) {
-            self::AccountGet, self::AccountUpdate, self::AccountDelete => '/account/{account_id}',
+            self::AccountGet,
+            self::AccountUpdate,
+            self::AccountDelete => '/account/{account_id}',
             self::AccountSessions => '/account/{account_id}/sessions',
             self::AccountLinked => '/account/{account_id}/accounts-linked',
             self::SessionAuthenticate => '/session/authenticate',
             self::SessionUnauthenticated => '/session/unauthenticated',
             self::SessionGet => '/session/{session_id}',
-            self::SessionStart => '/liveness/session',
+            self::FaceMatchSessionStart => '/liveness/session?referring_session_id={referring_session_id}',
+            self::IDCheckSessionStart => '/liveness/session?id=true&referring_session_id={referring_session_id}',
             self::Enroll => '/liveness/enroll',
             self::VerifyFace => '/liveness/verify-face',
             self::VerifyIdentity => '/liveness/verify-identity',
             self::VerifyId => '/liveness/verify-id',
             self::VerifyPhone => '/phone',
-            self::ListCreate, self::ListGet, self::ListDelete => '/list/{list_name}',
+            self::ListCreate,
+            self::ListGet,
+            self::ListDelete => '/list/{list_name}',
             self::ListGetAll => '/list',
-            self::ListAddAccount, self::ListRemoveAccount => '/list/{list_name}/account/{account_id}',
+            self::ListAddAccount,
+            self::ListRemoveAccount => '/list/{list_name}/account/{account_id}',
         };
     }
 
@@ -65,8 +72,25 @@ enum VerisoulApiEndpoint
     {
         $endpoint = $this->url();
 
+        // First, substitute all provided parameters.
         foreach ($parameters as $key => $value) {
             $endpoint = str_replace('{'.$key.'}', $value, $endpoint);
+        }
+
+        // If the URL has a query string with remaining placeholders, clean it up.
+        $urlParts = parse_url($endpoint);
+        if (isset($urlParts['query']) && str_contains($urlParts['query'], '{')) {
+            $path = $urlParts['path'];
+            parse_str($urlParts['query'], $queryParams);
+
+            // Keep query parameters that do not contain a placeholder.
+            $finalQueryParams = array_filter($queryParams, function ($value) {
+                return ! is_string($value) || ! str_contains($value, '{');
+            });
+
+            $newQuery = http_build_query($finalQueryParams);
+
+            return $newQuery ? $path.'?'.$newQuery : $path;
         }
 
         return $endpoint;
@@ -83,7 +107,8 @@ enum VerisoulApiEndpoint
             self::AccountSessions,
             self::AccountLinked,
             self::SessionGet,
-            self::SessionStart,
+            self::FaceMatchSessionStart,
+            self::IDCheckSessionStart,
             self::ListGetAll,
             self::ListGet => 'GET',
 
