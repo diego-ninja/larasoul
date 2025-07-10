@@ -1,6 +1,6 @@
 <?php
 
-namespace Ninja\Larasoul\Contracts;
+namespace Ninja\Larasoul\Api\Contracts;
 
 use Ninja\Larasoul\Enums\VerisoulEnvironment;
 

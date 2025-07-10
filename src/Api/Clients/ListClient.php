@@ -4,7 +4,7 @@ namespace Ninja\Larasoul\Api\Clients;
 
 use Ninja\Larasoul\Api\Responses\ListOperationResponse;
 use Ninja\Larasoul\Collections\AccountListCollection;
-use Ninja\Larasoul\Contracts\ListInterface;
+use Ninja\Larasoul\Api\Contracts\ListInterface;
 use Ninja\Larasoul\DTO\AccountList;
 use Ninja\Larasoul\Enums\VerisoulApiEndpoint;
 use Ninja\Larasoul\Exceptions\VerisoulApiException;

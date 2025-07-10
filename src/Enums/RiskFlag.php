@@ -58,15 +58,15 @@ enum RiskFlag: string
      */
     public static function getByCategory(string $category): array
     {
-        return array_filter(self::cases(), fn ($flag) => $flag->getCategory() === $category);
+        return array_filter(self::cases(), fn (RiskFlag $flag) => $flag->getCategory() === $category);
     }
 
     /**
      * Get flags by risk level
      */
-    public static function getByRiskLevel(string $level): array
+    public static function getByRiskLevel(RiskLevel $level): array
     {
-        return array_filter(self::cases(), fn ($flag) => $flag->getRiskLevel() === $level);
+        return array_filter(self::cases(), fn (RiskFlag $flag) => $flag->getRiskLevel() === $level);
     }
 
     /**
@@ -74,7 +74,7 @@ enum RiskFlag: string
      */
     public static function getBlockingFlags(): array
     {
-        return array_filter(self::cases(), fn ($flag) => $flag->shouldBlock());
+        return array_filter(self::cases(), fn (RiskFlag $flag) => $flag->shouldBlock());
     }
 
     /**
@@ -196,14 +196,14 @@ enum RiskFlag: string
     /**
      * Get risk level for this flag
      */
-    public function getRiskLevel(): string
+    public function getRiskLevel(): RiskLevel
     {
         return match ($this) {
             // High risk flags
             self::LikelyFakeId,
             self::KnownFraudFace,
             self::KnownFraudId,
-            self::LowIdFaceMatchScore => 'high',
+            self::LowIdFaceMatchScore => RiskLevel::High,
 
             // Medium risk flags
             self::CannotConfirmIdIsAuthentic,
@@ -213,7 +213,7 @@ enum RiskFlag: string
             self::RepeatId,
             self::RecentFraudIp,
             self::ImpossibleTravelDetected,
-            self::LocationSpoofing => 'medium',
+            self::LocationSpoofing => RiskLevel::Medium,
 
             // Low risk flags
             self::IdExpired,
@@ -222,7 +222,7 @@ enum RiskFlag: string
             self::ProxyDetected,
             self::VpnDetected,
             self::DatacenterDetected,
-            self::IpDocumentCountryMismatch => 'low',
+            self::IpDocumentCountryMismatch => RiskLevel::Low,
         };
     }
 

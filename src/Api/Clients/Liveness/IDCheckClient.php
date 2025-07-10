@@ -4,7 +4,7 @@ namespace Ninja\Larasoul\Api\Clients\Liveness;
 
 use Ninja\Larasoul\Api\Responses\LivenessSessionResponse;
 use Ninja\Larasoul\Api\Responses\VerifyIdResponse;
-use Ninja\Larasoul\Contracts\IDCheckInterface;
+use Ninja\Larasoul\Api\Contracts\IDCheckInterface;
 use Ninja\Larasoul\Enums\VerisoulApiEndpoint;
 use Ninja\Larasoul\Exceptions\VerisoulApiException;
 use Ninja\Larasoul\Exceptions\VerisoulConnectionException;

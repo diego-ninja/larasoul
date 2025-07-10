@@ -1,10 +1,10 @@
 <?php
 
-namespace Ninja\Larasoul\Contracts;
+namespace Ninja\Larasoul\Api\Contracts;
 
-use Illuminate\Contracts\Auth\Authenticatable;
 use Ninja\Larasoul\Api\Responses\EnrollAccountResponse;
 use Ninja\Larasoul\Api\Responses\LivenessSessionResponse;
+use Ninja\Larasoul\DTO\UserAccount;
 use Ninja\Larasoul\Exceptions\VerisoulApiException;
 use Ninja\Larasoul\Exceptions\VerisoulConnectionException;
 
@@ -20,5 +20,5 @@ interface BiometricInterface
      * @throws VerisoulApiException
      * @throws VerisoulConnectionException
      */
-    public function enroll(string $sessionId, Authenticatable $user): EnrollAccountResponse;
+    public function enroll(string $sessionId, UserAccount $account): EnrollAccountResponse;
 }

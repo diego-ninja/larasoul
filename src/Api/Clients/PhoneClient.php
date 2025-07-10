@@ -2,8 +2,8 @@
 
 namespace Ninja\Larasoul\Api\Clients;
 
+use Ninja\Larasoul\Api\Contracts\PhoneInterface;
 use Ninja\Larasoul\Api\Responses\VerifyPhoneResponse;
-use Ninja\Larasoul\Contracts\PhoneInterface;
 use Ninja\Larasoul\Enums\VerisoulApiEndpoint;
 use Ninja\Larasoul\Exceptions\VerisoulApiException;
 use Ninja\Larasoul\Exceptions\VerisoulConnectionException;

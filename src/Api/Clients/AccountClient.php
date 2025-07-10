@@ -6,7 +6,7 @@ use Ninja\Larasoul\Api\Responses\AccountResponse;
 use Ninja\Larasoul\Api\Responses\AccountSessionsResponse;
 use Ninja\Larasoul\Api\Responses\DeleteAccountResponse;
 use Ninja\Larasoul\Api\Responses\LinkedAccountsResponse;
-use Ninja\Larasoul\Contracts\AccountInterface;
+use Ninja\Larasoul\Api\Contracts\AccountInterface;
 use Ninja\Larasoul\Enums\VerisoulApiEndpoint;
 use Ninja\Larasoul\Exceptions\VerisoulApiException;
 use Ninja\Larasoul\Exceptions\VerisoulConnectionException;

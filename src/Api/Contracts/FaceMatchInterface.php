@@ -1,6 +1,6 @@
 <?php
 
-namespace Ninja\Larasoul\Contracts;
+namespace Ninja\Larasoul\Api\Contracts;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Ninja\Larasoul\Api\Responses\VerifyFaceResponse;

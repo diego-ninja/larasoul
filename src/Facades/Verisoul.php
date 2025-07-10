@@ -3,12 +3,12 @@
 namespace Ninja\Larasoul\Facades;
 
 use Illuminate\Support\Facades\Facade;
+use Ninja\Larasoul\Api\Contracts\PhoneInterface;
+use Ninja\Larasoul\Api\Contracts\SessionInterface;
 use Ninja\Larasoul\Contracts\AccountInterface;
 use Ninja\Larasoul\Contracts\FaceMatchInterface;
 use Ninja\Larasoul\Contracts\IDCheckInterface;
 use Ninja\Larasoul\Contracts\ListInterface;
-use Ninja\Larasoul\Contracts\PhoneInterface;
-use Ninja\Larasoul\Contracts\SessionInterface;
 use Ninja\Larasoul\Enums\VerisoulEnvironment;
 use Ninja\Larasoul\Services\VerisoulManager;
 

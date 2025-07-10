@@ -6,7 +6,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Ninja\Larasoul\Api\Responses\LivenessSessionResponse;
 use Ninja\Larasoul\Api\Responses\VerifyFaceResponse;
 use Ninja\Larasoul\Api\Responses\VerifyIdentityResponse;
-use Ninja\Larasoul\Contracts\FaceMatchInterface;
+use Ninja\Larasoul\Api\Contracts\FaceMatchInterface;
 use Ninja\Larasoul\Enums\VerisoulApiEndpoint;
 use Ninja\Larasoul\Exceptions\VerisoulApiException;
 use Ninja\Larasoul\Exceptions\VerisoulConnectionException;

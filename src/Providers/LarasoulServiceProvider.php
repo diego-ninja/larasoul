@@ -3,22 +3,29 @@
 namespace Ninja\Larasoul\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Ninja\Larasoul\Contracts\AccountInterface;
-use Ninja\Larasoul\Contracts\FaceMatchInterface;
-use Ninja\Larasoul\Contracts\IDCheckInterface;
-use Ninja\Larasoul\Contracts\ListInterface;
-use Ninja\Larasoul\Contracts\PhoneInterface;
-use Ninja\Larasoul\Contracts\SessionInterface;
+use Ninja\Larasoul\Api\Contracts\AccountInterface;
+use Ninja\Larasoul\Api\Contracts\FaceMatchInterface;
+use Ninja\Larasoul\Api\Contracts\IDCheckInterface;
+use Ninja\Larasoul\Api\Contracts\ListInterface;
+use Ninja\Larasoul\Api\Contracts\PhoneInterface;
+use Ninja\Larasoul\Api\Contracts\SessionInterface;
+use Ninja\Larasoul\Enums\LivenessSession;
 use Ninja\Larasoul\Enums\VerisoulEnvironment;
+use Ninja\Larasoul\Models\RiskProfile;
+use Ninja\Larasoul\Observers\RiskProfileObserver;
+use Ninja\Larasoul\Providers\Traits\RegistersVerificationMiddleware;
 use Ninja\Larasoul\Services\VerisoulManager;
+use Ninja\Larasoul\Services\VerisoulSessionManager;
 
 class LarasoulServiceProvider extends ServiceProvider
 {
+    use RegistersVerificationMiddleware;
+
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../../config/larasoul.php', 'larasoul');
 
-        // Register the main manager
+        // Register the main manager (existing)
         $this->app->singleton(VerisoulManager::class, function ($app) {
             return new VerisoulManager(
                 apiKey: config('larasoul.verisoul.api_key'),
@@ -27,8 +34,19 @@ class LarasoulServiceProvider extends ServiceProvider
             );
         });
 
-        // Register individual clients
+        $this->app->singleton(VerisoulSessionManager::class, function ($app) {
+            return new VerisoulSessionManager;
+        });
+
+        $this->app->singleton(\Ninja\Larasoul\Services\VerisoulScriptGenerator::class, function ($app) {
+            return new \Ninja\Larasoul\Services\VerisoulScriptGenerator($app['request']);
+        });
+
+        // Register individual clients (existing)
         $this->registerClients();
+
+        // Register facade aliases
+        $this->app->alias(VerisoulManager::class, 'verisoul');
     }
 
     public function boot(): void
@@ -37,15 +55,46 @@ class LarasoulServiceProvider extends ServiceProvider
             __DIR__.'/../../config/larasoul.php' => config_path('larasoul.php'),
         ], 'larasoul-config');
 
+        // Publish migrations (new)
+        $this->publishes([
+            __DIR__.'/../../database/migrations' => database_path('migrations'),
+        ], 'larasoul-migrations');
+
+        // Register model observers (new)
+        RiskProfile::observe(RiskProfileObserver::class);
+
         // Register commands
         if ($this->app->runningInConsole()) {
             $this->commands([
+                \Ninja\Larasoul\Console\Commands\GenerateAnnotationsCommand::class,
             ]);
         }
 
+        // Load routes (existing)
         $this->loadRoutesFrom(__DIR__.'/../../routes/larasoul.php');
+
+        // Register event listeners (new)
+        $this->registerEventListeners();
+
+        // Register model bindings (new)
+        $this->registerModelBindings();
+
+        // Register enum bindings
+        $this->registerEnumBindings();
+
+        // Register validation rules (new)
+        $this->registerValidationRules();
+
+        // Register view composers (new)
+        $this->registerViewComposers();
+
+        // Register blade directives (new)
+        $this->registerBladeDirectives();
     }
 
+    /**
+     * Register individual clients (existing functionality)
+     */
     private function registerClients(): void
     {
         $this->app->bind(AccountInterface::class, function ($app) {
@@ -83,5 +132,177 @@ class LarasoulServiceProvider extends ServiceProvider
 
             return $manager->idCheck();
         });
+    }
+
+    /**
+     * Register event listeners (new functionality)
+     */
+    protected function registerEventListeners(): void
+    {
+        /**
+        $this->app['events']->listen(
+            \Ninja\Larasoul\Events\HighRiskUserDetected::class,
+            \Ninja\Larasoul\Listeners\HandleHighRiskUser::class
+        );
+
+        $this->app['events']->listen(
+            \Ninja\Larasoul\Events\UserRiskVerificationCompleted::class,
+            \Ninja\Larasoul\Listeners\HandleVerificationCompleted::class
+        );
+
+        $this->app['events']->listen(
+            \Ninja\Larasoul\Events\UserRiskVerificationFailed::class,
+            \Ninja\Larasoul\Listeners\HandleVerificationFailed::class
+        );
+
+        $this->app['events']->listen(
+            \Ninja\Larasoul\Events\ManualReviewRequired::class,
+            \Ninja\Larasoul\Listeners\HandleManualReviewRequired::class
+        );
+
+        $this->app['events']->listen(
+            \Ninja\Larasoul\Events\FraudAttemptDetected::class,
+            \Ninja\Larasoul\Listeners\HandleFraudAttempt::class
+        );
+
+        $this->app['events']->listen(
+            \Ninja\Larasoul\Events\UserRiskVerificationExpired::class,
+            \Ninja\Larasoul\Listeners\HandleVerificationExpired::class
+        );
+         **/
+
+        // Login
+        $this->app['events']->listen(
+            \Illuminate\Auth\Events\Login::class,
+            \Ninja\Larasoul\Listeners\HandleAuthUser::class
+        );
+
+        // Register
+        $this->app['events']->listen(
+            \Illuminate\Auth\Events\Registered::class,
+            \Ninja\Larasoul\Listeners\HandleAuthUser::class
+        );
+    }
+
+    /**
+     * Register model bindings (new functionality)
+     */
+    protected function registerModelBindings(): void
+    {
+        // Allow custom user verification model
+        $this->app->bind(
+            RiskProfile::class,
+            config('larasoul.verification.models.user_verification', RiskProfile::class)
+        );
+    }
+
+    /**
+     * Register enum bindings for route parameters
+     */
+    protected function registerEnumBindings(): void
+    {
+        // Register LivenessSession enum binding
+        $this->app['router']->bind('sessionType', function ($value) {
+            return LivenessSession::tryFrom($value) ?: abort(404);
+        });
+    }
+
+    /**
+     * Register custom validation rules (new functionality)
+     */
+    protected function registerValidationRules(): void
+    {
+        $this->app['validator']->extend('verification_required', function ($attribute, $value, $parameters, $validator) {
+            $userId = $value;
+            $requiredLevel = $parameters[0] ?? 'basic';
+
+            $user = app(config('auth.providers.users.model'))->find($userId);
+
+            if (! $user) {
+                return false;
+            }
+
+            $requirements = config("larasoul.verification.requirements.{$requiredLevel}", []);
+
+            foreach ($requirements as $type) {
+                $methodName = 'has'.ucfirst($type).'Verification';
+                if (method_exists($user, $methodName) && ! $user->$methodName()) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+
+        $this->app['validator']->extend('risk_level_max', function ($attribute, $value, $parameters, $validator) {
+            $userId = $value;
+            $maxRiskLevel = $parameters[0] ?? 'medium';
+
+            $user = app(config('auth.providers.users.model'))->find($userId);
+
+            if (! $user) {
+                return false;
+            }
+
+            $riskLevels = ['low' => 1, 'medium' => 2, 'high' => 3];
+            $userRiskLevel = $riskLevels[$user->getRiskLevel()] ?? 3;
+            $maxAllowedLevel = $riskLevels[$maxRiskLevel] ?? 2;
+
+            return $userRiskLevel <= $maxAllowedLevel;
+        });
+
+        $this->app['validator']->extend('verification_not_expired', function ($attribute, $value, $parameters, $validator) {
+            $userId = $value;
+
+            $user = app(config('auth.providers.users.model'))->find($userId);
+
+            if (! $user) {
+                return false;
+            }
+
+            return ! $user->isVerificationExpired();
+        });
+    }
+
+    /**
+     * Register view composers for frontend integration
+     */
+    protected function registerViewComposers(): void
+    {
+        if (config('larasoul.verisoul.frontend.enabled', false)) {
+            // Standard Blade integration
+            if (config('larasoul.verisoul.frontend.auto_inject', false)) {
+                view()->composer('*', \Ninja\Larasoul\View\Composers\VerisoulScriptComposer::class);
+            }
+        }
+    }
+
+    /**
+     * Register Blade directives for Verisoul
+     */
+    protected function registerBladeDirectives(): void
+    {
+        \Blade::directive('verisoul', function ($expression) {
+            return "<?php echo app('\\Ninja\\Larasoul\\Services\\VerisoulScriptGenerator')->generate({$expression}); ?>";
+        });
+
+        \Blade::directive('verisoulHead', function () {
+            return "<?php echo app('\\Ninja\\Larasoul\\Services\\VerisoulScriptGenerator')->generateForHead(); ?>";
+        });
+
+        \Blade::directive('verisoulSession', function ($expression) {
+            return "<?php echo app('\\Ninja\\Larasoul\\Services\\VerisoulScriptGenerator')->generateSessionScript({$expression}); ?>";
+        });
+    }
+
+    /**
+     * Get the services provided by the provider.
+     */
+    public function provides(): array
+    {
+        return [
+            VerisoulManager::class,
+            'verisoul',
+        ];
     }
 }

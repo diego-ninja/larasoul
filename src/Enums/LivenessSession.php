@@ -10,8 +10,8 @@ enum LivenessSession: string
     public function enabled(): bool
     {
         return match ($this) {
-            self::FaceMatch => config('services.verisoul.face_match.enabled') && config('services.verisoul.enabled'),
-            self::IDCheck => config('services.verisoul.id_check.enabled') && config('services.verisoul.enabled'),
+            self::FaceMatch => config('larasoul.verisoul.liveness.face_match.enabled'),
+            self::IDCheck => config('larasoul.verisoul.liveness.id_check.enabled'),
         };
     }
 }

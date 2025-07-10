@@ -21,5 +21,6 @@ final readonly class RiskSignals extends Bag
         public bool $recentFraudIp,
         public bool $impossibleTravel,
         public bool $deviceNetworkMismatch,
+        public bool $locationSpoofing,
     ) {}
 }

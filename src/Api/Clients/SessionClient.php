@@ -2,9 +2,10 @@
 
 namespace Ninja\Larasoul\Api\Clients;
 
+use Ninja\Larasoul\Api\Contracts\SessionInterface;
+use Ninja\Larasoul\Api\Responses\AuthenticateSessionResponse;
 use Ninja\Larasoul\Api\Responses\SessionResponse;
-use Ninja\Larasoul\Contracts\SessionInterface;
-use Ninja\Larasoul\DTO\Account;
+use Ninja\Larasoul\DTO\UserAccount;
 use Ninja\Larasoul\Enums\VerisoulApiEndpoint;
 use Ninja\Larasoul\Exceptions\VerisoulApiException;
 use Ninja\Larasoul\Exceptions\VerisoulConnectionException;
@@ -15,7 +16,7 @@ final class SessionClient extends Client implements SessionInterface
      * @throws VerisoulApiException
      * @throws VerisoulConnectionException
      */
-    public function authenticate(Account $account, string $sessionId, bool $accountsLinked = false): SessionResponse
+    public function authenticate(UserAccount $account, string $sessionId, bool $accountsLinked = false): AuthenticateSessionResponse
     {
         $response = $this->call(
             VerisoulApiEndpoint::SessionAuthenticate,
@@ -28,7 +29,7 @@ final class SessionClient extends Client implements SessionInterface
             ]
         );
 
-        return SessionResponse::from($response);
+        return AuthenticateSessionResponse::from($response);
     }
 
     /**

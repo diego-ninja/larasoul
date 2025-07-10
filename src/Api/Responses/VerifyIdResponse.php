@@ -15,6 +15,7 @@ use Ninja\Larasoul\DTO\PhotoUrls;
 use Ninja\Larasoul\DTO\ReferringSessionSignals;
 use Ninja\Larasoul\DTO\SessionData;
 use Ninja\Larasoul\Enums\RiskFlag;
+use Ninja\Larasoul\Enums\RiskLevel;
 use Ninja\Larasoul\Enums\VerisoulDecision;
 
 #[MapInputName(SnakeCase::class)]
@@ -73,7 +74,7 @@ final readonly class VerifyIdResponse extends ApiResponse
      */
     public function hasBlockingRiskFlags(): bool
     {
-        return $this->riskFlags->some(fn ($flag) => $flag->shouldBlock());
+        return $this->riskFlags->some(fn (RiskFlag $flag) => $flag->shouldBlock());
     }
 
     /**
@@ -81,7 +82,7 @@ final readonly class VerifyIdResponse extends ApiResponse
      */
     public function hasModerateRiskFlags(): bool
     {
-        return $this->riskFlags->some(fn ($flag) => $flag->getRiskLevel() === 'medium');
+        return $this->riskFlags->some(fn (RiskFlag $flag) => $flag->getRiskLevel() === RiskLevel::Medium);
     }
 
     /**
@@ -109,10 +110,10 @@ final readonly class VerifyIdResponse extends ApiResponse
         $levels = [];
         $this->riskFlags->each(function (RiskFlag $flag) use (&$levels) {
             $level = $flag->getRiskLevel();
-            if (! isset($levels[$level])) {
-                $levels[$level] = [];
+            if (! isset($levels[$level->value])) {
+                $levels[$level->value] = [];
             }
-            $levels[$level][] = $flag;
+            $levels[$level->value][] = $flag;
         });
 
         return $levels;
