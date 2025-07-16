@@ -8,11 +8,11 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Ninja\Larasoul\Collections\RiskSignalCollection;
 use Ninja\Larasoul\Contracts\RiskProfilable;
 use Ninja\Larasoul\Enums\RiskLevel;
-use Ninja\Larasoul\Enums\RiskStatus;
-use Ninja\Larasoul\Enums\VerificationType;
 use Ninja\Larasoul\Enums\VerisoulDecision;
+use Ninja\Larasoul\ValueObjects\RiskScore;
 
 /**
  * Ninja\Larasoul\Models\RiskProfile
@@ -21,63 +21,53 @@ use Ninja\Larasoul\Enums\VerisoulDecision;
  *
  * @property int $id
  * @property int $user_id
- * @property RiskStatus $status
  * @property VerisoulDecision|null $decision
- * @property float|null $score
- * @property array|null $signals
- * @property Carbon|null $phone_verified_at
- * @property Carbon|null $face_verified_at
- * @property Carbon|null $identity_verified_at
- * @property Carbon|null $verified_at
+ * @property RiskLevel $risk_level
+ * @property RiskScore|null $risk_score
+ * @property RiskSignalCollection $risk_signals
+ * @property Carbon|null $assessed_at
  * @property Carbon|null $expires_at
- * @property string|null $failure_reason
- * @property Carbon|null $last_risk_check_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Authenticatable $user
- * @property-read string $risk_level
- * @property-read array $verified_types
- * @property-read int $verification_score
- * @property-read string $health_status
  * @property-read int|null $days_until_expiration
  * @property-read bool $is_expired
  * @property-read bool $is_about_to_expire
- * @property-read bool $is_verified
- * @property-read bool $is_fully_verified
- * @property-read bool $has_face_verification
- * @property-read bool $has_phone_verification
- * @property-read bool $has_identity_verification
+ * @property-read bool $is_assessed
+ * @property-read bool $is_low_risk
+ * @property-read bool $is_high_risk
+ * @property-read bool $is_real
+ * @property-read bool $is_fake
+ * @property-read bool $is_suspicious
  * @property-read bool $requires_manual_review
+ * @property-read bool $needs_assessment
  *
- * @method static Builder|RiskProfile verified()
- * @method static Builder|RiskProfile failed()
- * @method static Builder|RiskProfile pending()
- * @method static Builder|RiskProfile manualReview()
+ * @method static Builder|RiskProfile real()
+ * @method static Builder|RiskProfile fake()
+ * @method static Builder|RiskProfile suspicious()
+ * @method static Builder|RiskProfile assessed()
+ * @method static Builder|RiskProfile unassessed()
  * @method static Builder|RiskProfile expired()
  * @method static Builder|RiskProfile aboutToExpire(int $warningDays = 7)
  * @method static Builder|RiskProfile lowRisk()
  * @method static Builder|RiskProfile mediumRisk()
  * @method static Builder|RiskProfile highRisk()
- * @method static Builder|RiskProfile identityVerified()
- * @method static Builder|RiskProfile faceVerified()
- * @method static Builder|RiskProfile phoneVerified()
+ * @method static Builder|RiskProfile criticalRisk()
+ * @method static Builder|RiskProfile withRiskLevel(RiskLevel $riskLevel)
+ * @method static Builder|RiskProfile withDecision(VerisoulDecision $decision)
  * @method static Builder|RiskProfile recent(int $days = 30)
- * @method static Builder|RiskProfile needsRiskCheck(int $intervalDays = 30)
+ * @method static Builder|RiskProfile needsAssessment(int $intervalDays = 30)
  * @method static Builder|RiskProfile newModelQuery()
  * @method static Builder|RiskProfile newQuery()
  * @method static Builder|RiskProfile query()
  * @method static Builder|RiskProfile whereId($value)
  * @method static Builder|RiskProfile whereUserId($value)
- * @method static Builder|RiskProfile whereStatus($value)
  * @method static Builder|RiskProfile whereDecision($value)
- * @method static Builder|RiskProfile whereScore($value)
- * @method static Builder|RiskProfile whereSignals($value)
- * @method static Builder|RiskProfile whereFaceVerifiedAt($value)
- * @method static Builder|RiskProfile wherePhoneVerifiedAt($value)
- * @method static Builder|RiskProfile whereIdentityVerifiedAt($value)
- * @method static Builder|RiskProfile whereVerifiedAt($value)
+ * @method static Builder|RiskProfile whereRiskLevel($value)
+ * @method static Builder|RiskProfile whereRiskScore($value)
+ * @method static Builder|RiskProfile whereRiskSignals($value)
+ * @method static Builder|RiskProfile whereAssessedAt($value)
  * @method static Builder|RiskProfile whereExpiresAt($value)
- * @method static Builder|RiskProfile whereLastRiskCheckAt($value)
  * @method static Builder|RiskProfile whereCreatedAt($value)
  * @method static Builder|RiskProfile whereUpdatedAt($value)
  */ class RiskProfile extends Model
@@ -88,28 +78,21 @@ use Ninja\Larasoul\Enums\VerisoulDecision;
 
     protected $fillable = [
         'user_id',
-        'status',
         'decision',
-        'score',
-        'signals',
-        'face_verified_at',
-        'phone_verified_at',
-        'identity_verified_at',
-        'verified_at',
+        'risk_level',
+        'risk_score',
+        'risk_signals',
+        'assessed_at',
         'expires_at',
-        'last_risk_check_at',
     ];
 
     protected $casts = [
         'decision' => VerisoulDecision::class,
-        'score' => 'decimal:2',
-        'signals' => 'array',
-        'face_verified_at' => 'datetime',
-        'phone_verified_at' => 'datetime',
-        'identity_verified_at' => 'datetime',
-        'verified_at' => 'datetime',
+        'risk_level' => RiskLevel::class,
+        'risk_score' => RiskScore::class,
+        'risk_signals' => \Ninja\Larasoul\Casts\RiskSignalCollectionCast::class,
+        'assessed_at' => 'datetime',
         'expires_at' => 'datetime',
-        'last_risk_check_at' => 'datetime',
     ];
 
     public static function for(RiskProfilable $user): RiskProfile
@@ -117,7 +100,7 @@ use Ninja\Larasoul\Enums\VerisoulDecision;
         if (! $user->hasRiskProfile()) {
             $riskProfile = RiskProfile::create([
                 'user_id' => $user->getAuthIdentifier(),
-                'status' => RiskStatus::Pending,
+                'risk_level' => RiskLevel::Unknown,
             ]);
         } else {
             $riskProfile = $user->getRiskProfile();
@@ -135,65 +118,67 @@ use Ninja\Larasoul\Enums\VerisoulDecision;
     }
 
     /**
-     * Check if verification is complete
+     * Check if risk profile is assessed
      */
-    public function isVerified(): bool
+    public function isAssessed(): bool
     {
-        return $this->verification_status === RiskStatus::Verified &&
-            $this->decision === VerisoulDecision::Real &&
-            ! $this->isExpired();
+        return $this->decision !== null && $this->assessed_at !== null;
     }
 
     /**
-     * Check if fully verified (all verification types)
+     * Check if risk profile is low risk
      */
-    public function isFullyVerified(): bool
+    public function isLowRisk(): bool
     {
-        return $this->isVerified() &&
-            $this->hasPhoneVerification() &&
-            $this->hasIdentityVerification() &&
-            $this->hasFaceVerification();
+        return $this->risk_level === RiskLevel::Low;
     }
 
     /**
-     * Check if has face verification
+     * Check if risk profile is high risk
      */
-    public function hasFaceVerification(): bool
+    public function isHighRisk(): bool
     {
-        return ! is_null($this->face_verified_at);
+        return $this->risk_level === RiskLevel::High || $this->risk_level === RiskLevel::Critical;
     }
 
     /**
-     * Check if has phone verification
+     * Check if decision is real
      */
-    public function hasPhoneVerification(): bool
+    public function isReal(): bool
     {
-        return ! is_null($this->phone_verified_at);
+        return $this->decision === VerisoulDecision::Real;
     }
 
     /**
-     * Check if has identity verification
+     * Check if decision is fake
      */
-    public function hasIdentityVerification(): bool
+    public function isFake(): bool
     {
-        return ! is_null($this->identity_verified_at);
+        return $this->decision === VerisoulDecision::Fake;
     }
 
     /**
-     * Get risk level based on score
+     * Check if decision is suspicious
+     */
+    public function isSuspicious(): bool
+    {
+        return $this->decision === VerisoulDecision::Suspicious;
+    }
+
+    /**
+     * Get risk level (from database or calculated from score)
      */
     public function getRiskLevel(): RiskLevel
     {
+        if ($this->risk_level) {
+            return $this->risk_level;
+        }
+
         if ($this->risk_score === null) {
             return RiskLevel::Unknown;
         }
 
-        return match (true) {
-            $this->risk_score <= 0.3 => RiskLevel::Low,
-            $this->risk_score <= 0.7 => RiskLevel::Medium,
-            $this->risk_score <= 0.9 => RiskLevel::High,
-            default => RiskLevel::Critical,
-        };
+        return $this->risk_score->level();
     }
 
     /**
@@ -201,33 +186,29 @@ use Ninja\Larasoul\Enums\VerisoulDecision;
      */
     public function requiresManualReview(): bool
     {
-        return $this->verification_status === RiskStatus::ManualReview ||
-            $this->decision === VerisoulDecision::Suspicious ||
-            ($this->risk_score >= 0.4 && $this->risk_score < 0.8);
+        return $this->decision === VerisoulDecision::Suspicious ||
+            ($this->risk_score?->isBetween(0.4, 0.8) ?? false);
     }
 
     /**
-     * Get verified types
-     *
-     * @return array<VerificationType>
+     * Update risk assessment
      */
-    public function getVerifiedTypes(): array
-    {
-        $types = [];
+    public function updateRiskAssessment(
+        VerisoulDecision $decision,
+        RiskLevel $riskLevel,
+        RiskScore $riskScore,
+        ?array $riskSignals = null
+    ): self {
+        $this->update([
+            'decision' => $decision,
+            'risk_level' => $riskLevel,
+            'risk_score' => $riskScore,
+            'risk_signals' => $riskSignals,
+            'assessed_at' => now(),
+            'expires_at' => now()->addDays(config('larasoul.verification.expirations.risk_assessment', 30)),
+        ]);
 
-        if ($this->hasFaceVerification()) {
-            $types[] = VerificationType::Face;
-        }
-
-        if ($this->hasPhoneVerification()) {
-            $types[] = VerificationType::Phone;
-        }
-
-        if ($this->hasIdentityVerification()) {
-            $types[] = VerificationType::Identity;
-        }
-
-        return $types;
+        return $this;
     }
 
     /**
@@ -238,9 +219,12 @@ use Ninja\Larasoul\Enums\VerisoulDecision;
         return $this->expires_at && $this->expires_at->isPast();
     }
 
-    public function needsVerification(): bool
+    /**
+     * Check if needs assessment
+     */
+    public function needsAssessment(): bool
     {
-        return $this->isExpired() || in_array($this->verification_status, [RiskStatus::Expired, RiskStatus::Pending], true);
+        return $this->isExpired() || ! $this->isAssessed();
     }
 
     /**
@@ -266,91 +250,94 @@ use Ninja\Larasoul\Enums\VerisoulDecision;
     }
 
     /**
-     * Mark verification as successful
+     * Mark as low risk
      */
-    public function markAsVerified(): self
+    public function markAsLowRisk(): self
     {
         $this->update([
-            'verification_status' => RiskStatus::Verified,
-            'verified_at' => now(),
-            'expires_at' => now()->addMonths(config('larasoul.verification.expiry_months', 12)),
+            'decision' => VerisoulDecision::Real,
+            'risk_level' => RiskLevel::Low,
+            'assessed_at' => now(),
+            'expires_at' => now()->addDays(config('larasoul.verification.expirations.risk_assessment', 30)),
         ]);
 
         return $this;
     }
 
     /**
-     * Mark verification as failed
+     * Mark as high risk
      */
-    public function markAsFailed(?string $reason = null): self
+    public function markAsHighRisk(): self
     {
         $this->update([
-            'verification_status' => RiskStatus::Failed,
+            'decision' => VerisoulDecision::Fake,
+            'risk_level' => RiskLevel::High,
+            'assessed_at' => now(),
         ]);
 
         return $this;
     }
 
     /**
-     * Mark for manual review
+     * Mark as suspicious
      */
-    public function markForManualReview(?string $reason = null): self
+    public function markAsSuspicious(): self
     {
         $this->update([
-            'verification_status' => RiskStatus::ManualReview,
+            'decision' => VerisoulDecision::Suspicious,
+            'risk_level' => RiskLevel::Medium,
+            'assessed_at' => now(),
         ]);
 
         return $this;
     }
 
     /**
-     * Update risk check timestamp
+     * Scope: Filter by decision
      */
-    public function updateRiskCheck(): self
+    public function scopeWithDecision($query, VerisoulDecision $decision)
     {
-        $this->update(['last_risk_check_at' => now()]);
-
-        return $this;
+        return $query->where('decision', $decision);
     }
 
     /**
-     * Scope: Filter by verification status
+     * Scope: Only real profiles
      */
-    public function scopeWithStatus($query, RiskStatus $status)
+    public function scopeReal($query)
     {
-        return $query->where('status', $status);
+        return $query->withDecision(VerisoulDecision::Real);
     }
 
     /**
-     * Scope: Only verified records
+     * Scope: Only fake profiles
      */
-    public function scopeVerified($query)
+    public function scopeFake($query)
     {
-        return $query->withStatus(RiskStatus::Verified);
+        return $query->withDecision(VerisoulDecision::Fake);
     }
 
     /**
-     * Scope: Only failed records
+     * Scope: Only suspicious profiles
      */
-    public function scopeFailed($query)
+    public function scopeSuspicious($query)
     {
-        return $query->withStatus(RiskStatus::Failed);
+        return $query->withDecision(VerisoulDecision::Suspicious);
     }
 
     /**
-     * Scope: Only pending records
+     * Scope: Only assessed profiles
      */
-    public function scopePending($query)
+    public function scopeAssessed($query)
     {
-        return $query->withStatus(RiskStatus::Pending);
+        return $query->whereNotNull('assessed_at');
     }
 
     /**
-     * Scope: Only manual review records
+     * Scope: Only unassessed profiles
      */
-    public function scopeManualReview($query)
+    public function scopeUnassessed($query)
     {
-        return $query->withStatus(RiskStatus::ManualReview);
+        return $query->whereNull('assessed_at');
     }
 
     /**
@@ -375,7 +362,7 @@ use Ninja\Larasoul\Enums\VerisoulDecision;
      */
     public function scopeLowRisk($query)
     {
-        return $query->where('risk_score', '<=', 0.3);
+        return $query->where('risk_score', '<=', config('larasoul.verification.risk_thresholds.low'));
     }
 
     /**
@@ -383,8 +370,8 @@ use Ninja\Larasoul\Enums\VerisoulDecision;
      */
     public function scopeMediumRisk($query)
     {
-        return $query->where('risk_score', '>', 0.3)
-            ->where('risk_score', '<=', 0.7);
+        return $query->where('risk_score', '>', config('larasoul.verification.risk_thresholds.low'))
+            ->where('risk_score', '<=', config('larasoul.verification.risk_thresholds.medium'));
     }
 
     /**
@@ -392,7 +379,7 @@ use Ninja\Larasoul\Enums\VerisoulDecision;
      */
     public function scopeHighRisk($query)
     {
-        return $query->where('risk_score', '>', 0.7);
+        return $query->where('risk_score', '>', config('larasoul.verification.risk_thresholds.medium'));
     }
 
     /**
@@ -400,23 +387,15 @@ use Ninja\Larasoul\Enums\VerisoulDecision;
      */
     public function scopeCriticalRisk($query)
     {
-        return $query->where('risk_score', '>', 0.9);
+        return $query->where('risk_score', '>', config('larasoul.verification.risk_thresholds.high'));
     }
 
     /**
-     * Scope: With face verification
+     * Scope: Filter by risk level
      */
-    public function scopeFaceVerified($query)
+    public function scopeWithRiskLevel($query, RiskLevel $riskLevel)
     {
-        return $query->whereNotNull('face_verified_at');
-    }
-
-    /**
-     * Scope: With phone verification
-     */
-    public function scopePhoneVerified($query)
-    {
-        return $query->whereNotNull('phone_verified_at');
+        return $query->where('risk_level', $riskLevel);
     }
 
     /**
@@ -428,25 +407,13 @@ use Ninja\Larasoul\Enums\VerisoulDecision;
     }
 
     /**
-     * Scope: Needs risk check
+     * Scope: Needs assessment
      */
-    public function scopeNeedsRiskCheck($query, int $intervalDays = 30)
+    public function scopeNeedsAssessment($query, int $intervalDays = 30)
     {
-        return $query->where(function ($q) use ($intervalDays) {
-            $q->whereNull('last_risk_check_at')
-                ->orWhere('last_risk_check_at', '<=', now()->subDays($intervalDays));
+        return $query->where(function ($q) {
+            $q->whereNull('assessed_at')
+                ->orWhere('expires_at', '<=', now());
         });
-    }
-
-    /**
-     * Check if risk check is due
-     */
-    public function isRiskCheckDue(int $intervalDays = 30): bool
-    {
-        if (! $this->last_risk_check_at) {
-            return true;
-        }
-
-        return $this->last_risk_check_at->diffInDays(now()) >= $intervalDays;
     }
 }

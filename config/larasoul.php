@@ -28,7 +28,7 @@ return [
     */
     'verisoul' => [
         'api_key' => env('VERISOUL_API_KEY'),
-        'enabled' => env('VERISOUL_ENABLED', false),
+        'enabled' => env('VERISOUL_ENABLED', true),
         'environment' => env('VERISOUL_ENVIRONMENT', 'sandbox'),
         'timeout' => env('VERISOUL_TIMEOUT', 30),
         'retry_attempts' => env('VERISOUL_RETRY_ATTEMPTS', 3),
@@ -84,30 +84,29 @@ return [
         | How long a verification is valid before it expires
         |
         */
-        'expiry_months' => env('VERISOUL_VERIFICATION_EXPIRY_MONTHS', 3),
+        'expirations' => [
+            'risk_assessment' => env('LARASOUL_RISK_ASSESSMENT_EXPIRY', 30), // days
+            'email' => env('LARASOUL_EMAIL_VERIFICATION_EXPIRY', 0), // days
+            'phone' => env('LARASOUL_PHONE_VERIFICATION_EXPIRY', 0), // days
+            'face' => env('LARASOUL_FACE_VERIFICATION_EXPIRY', 0), // days
+            'identity' => env('LARASOUL_IDENTITY_VERIFICATION_EXPIRY', 0), // days
+        ],
+        'expiry_months' => env('LARASOUL_VERIFICATION_EXPIRY_MONTHS', 6),
+
 
         /*
         |--------------------------------------------------------------------------
-        | Verification Attempts
-        |--------------------------------------------------------------------------
-        |
-        | Maximum number of verification attempts before requiring manual review
-        |
-        */
-        'max_attempts' => env('VERISOUL_MAX_VERIFICATION_ATTEMPTS', 3),
-
-        /*
-        |--------------------------------------------------------------------------
-        | Risk Score Thresholds
+        | Risk Levels
         |--------------------------------------------------------------------------
         |
         | Risk score thresholds for different risk levels
         |
         */
         'risk_thresholds' => [
-            'low' => 0.3,
-            'medium' => 0.7,
-            'high' => 1.0,
+            'low' => env('LARASOUL_RISK_THRESHOLD_LOW', 0.25),
+            'medium' => env('LARASOUL_RISK_THRESHOLD_MEDIUM', 0.5),
+            'high' => env('LARASOUL_RISK_THRESHOLD_HIGH', 0.75),
+            'critical' => env('LARASOUL_RISK_THRESHOLD_CRITICAL', 0.9),
         ],
 
         /*
@@ -133,10 +132,10 @@ return [
         |
         */
         'requirements' => [
-            'basic' => ['phone'],
-            'standard' => ['phone', 'face'],
-            'premium' => ['phone', 'face', 'document'],
-            'high_value' => ['phone', 'face', 'identity'],
+            'basic' => ['email'],
+            'standard' => ['email', 'phone'],
+            'premium' => ['email', 'phone', 'face'],
+            'enterprise' => ['email', 'phone', 'face', 'identity'],
         ],
 
         /*
@@ -151,42 +150,6 @@ return [
             'verification_ttl' => env('VERISOUL_VERIFICATION_CACHE_TTL', 3600), // 1 hour
             'status_ttl' => env('VERISOUL_STATUS_CACHE_TTL', 300), // 5 minutes
             'prefix' => env('VERISOUL_CACHE_PREFIX', 'verisoul'),
-        ],
-
-        /*
-        |--------------------------------------------------------------------------
-        | Notifications
-        |--------------------------------------------------------------------------
-        |
-        | Notification settings for verification events
-        |
-        */
-        'notifications' => [
-            'channels' => [
-                'high_risk' => ['mail', 'slack'],
-                'verification_failed' => ['mail'],
-                'verification_completed' => ['mail'],
-                'manual_review' => ['mail', 'slack'],
-                'fraud_detected' => ['mail', 'slack', 'sms'],
-            ],
-            'admin_channels' => [
-                'mail' => env('VERISOUL_ADMIN_EMAIL'),
-                'slack' => env('VERISOUL_SLACK_WEBHOOK'),
-            ],
-        ],
-
-        /*
-        |--------------------------------------------------------------------------
-        | Risk Check Settings
-        |--------------------------------------------------------------------------
-        |
-        | Settings for periodic risk checks
-        |
-        */
-        'risk_checks' => [
-            'interval_days' => env('VERISOUL_RISK_CHECK_INTERVAL_DAYS', 30),
-            'auto_update' => env('VERISOUL_AUTO_UPDATE_RISK_SCORES', true),
-            'expiry_warning_days' => env('VERISOUL_EXPIRY_WARNING_DAYS', 7),
         ],
 
         /*
@@ -233,23 +196,8 @@ return [
         */
         'phone' => [
             'require_sms' => env('VERISOUL_REQUIRE_SMS_VERIFICATION', true),
-            'allowed_line_types' => ['mobile', 'landline'],
+            'allowed_line_types' => ['mobile'],
             'blocked_carriers' => [], // Carriers to block
-        ],
-
-        /*
-        |--------------------------------------------------------------------------
-        | Security Settings
-        |--------------------------------------------------------------------------
-        |
-        | Security-related configuration
-        |
-        */
-        'security' => [
-            'max_daily_attempts' => env('VERISOUL_MAX_DAILY_ATTEMPTS', 5),
-            'lockout_duration_minutes' => env('VERISOUL_LOCKOUT_DURATION', 60),
-            'enable_fraud_detection' => env('VERISOUL_ENABLE_FRAUD_DETECTION', true),
-            'auto_suspend_fraud' => env('VERISOUL_AUTO_SUSPEND_FRAUD', true),
         ],
 
         /*
@@ -261,62 +209,8 @@ return [
         |
         */
         'models' => [
-            'user_verification' => \Ninja\Larasoul\Models\RiskProfile::class,
-        ],
-
-        /*
-        |--------------------------------------------------------------------------
-        | Audit Settings
-        |--------------------------------------------------------------------------
-        |
-        | Audit and logging configuration
-        |
-        */
-        'audit' => [
-            'log_all_attempts' => env('VERISOUL_LOG_ALL_ATTEMPTS', true),
-            'log_level' => env('VERISOUL_LOG_LEVEL', 'info'),
-            'retain_logs_days' => env('VERISOUL_RETAIN_LOGS_DAYS', 90),
-        ],
-
-        /*
-        |--------------------------------------------------------------------------
-        | API Settings
-        |--------------------------------------------------------------------------
-        |
-        | API-specific configuration
-        |
-        */
-        'api' => [
-            'rate_limit' => env('VERISOUL_API_RATE_LIMIT', 100), // requests per hour
-            'webhook_secret' => env('VERISOUL_WEBHOOK_SECRET'),
-            'webhook_endpoints' => [
-                'verification_completed' => '/webhooks/verisoul/verification-completed',
-                'high_risk_detected' => '/webhooks/verisoul/high-risk-detected',
-                'fraud_detected' => '/webhooks/verisoul/fraud-detected',
-            ],
-        ],
-
-        /*
-        |--------------------------------------------------------------------------
-        | Compliance Settings
-        |--------------------------------------------------------------------------
-        |
-        | Compliance and regulatory requirements
-        |
-        */
-        'compliance' => [
-            'standard' => [
-                'max_risk_score' => 0.7,
-                'required_verification_types' => 2,
-                'max_linked_accounts' => 3,
-                'min_face_match_score' => 0.8,
-            ],
-            'strict' => [
-                'max_risk_score' => 0.3,
-                'required_verification_types' => 3,
-                'max_linked_accounts' => 1,
-                'min_face_match_score' => 0.9,
-            ],
+            'risk_profile' => \Ninja\Larasoul\Models\RiskProfile::class,
+            'user_verification' => \Ninja\Larasoul\Models\UserVerification::class,
         ],
     ],
 ];

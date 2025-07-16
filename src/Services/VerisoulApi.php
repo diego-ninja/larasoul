@@ -9,15 +9,15 @@ use Ninja\Larasoul\Api\Clients\Liveness\FaceMatchClient;
 use Ninja\Larasoul\Api\Clients\Liveness\IDCheckClient;
 use Ninja\Larasoul\Api\Clients\PhoneClient;
 use Ninja\Larasoul\Api\Clients\SessionClient;
-use Ninja\Larasoul\Api\Contracts\PhoneInterface;
-use Ninja\Larasoul\Api\Contracts\SessionInterface;
 use Ninja\Larasoul\Api\Contracts\AccountInterface;
 use Ninja\Larasoul\Api\Contracts\FaceMatchInterface;
 use Ninja\Larasoul\Api\Contracts\IDCheckInterface;
 use Ninja\Larasoul\Api\Contracts\ListInterface;
+use Ninja\Larasoul\Api\Contracts\PhoneInterface;
+use Ninja\Larasoul\Api\Contracts\SessionInterface;
 use Ninja\Larasoul\Enums\VerisoulEnvironment;
 
-class VerisoulManager
+class VerisoulApi
 {
     private array $clients = [];
 

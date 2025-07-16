@@ -1,6 +1,6 @@
 <?php
 
-namespace Ninja\Larasoul\Http\Controllers;
+namespace Ninja\Larasoul\Http\Controllers\Api;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Ninja\Larasoul\Services\VerisoulSessionManager;
 
-class VerisoulSessionController extends Controller
+class SessionController extends Controller
 {
     public function __construct(
         private readonly VerisoulSessionManager $sessionManager
@@ -59,58 +59,5 @@ class VerisoulSessionController extends Controller
                 'error' => app()->hasDebugModeEnabled() ? $e->getMessage() : 'Internal server error',
             ], 500);
         }
-    }
-
-    /**
-     * Get current Verisoul session ID for authenticated user
-     */
-    public function show(Request $request): JsonResponse
-    {
-        $userId = Auth::id();
-
-        if (! $userId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not authenticated',
-            ], 401);
-        }
-
-        $sessionData = $this->sessionManager->getSessionData($userId);
-
-        if (! $sessionData) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No Verisoul session found',
-            ], 404);
-        }
-
-        return response()->json([
-            'success' => true,
-            'session_id' => $sessionData['session_id'],
-            'metadata' => $sessionData['metadata'] ?? [],
-            'created_at' => $sessionData['created_at'] ?? null,
-        ]);
-    }
-
-    /**
-     * Clear Verisoul session ID for authenticated user
-     */
-    public function destroy(Request $request): JsonResponse
-    {
-        $userId = Auth::id();
-
-        if (! $userId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not authenticated',
-            ], 401);
-        }
-
-        $this->sessionManager->clearSessionId($userId);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Verisoul session cleared successfully',
-        ]);
     }
 }

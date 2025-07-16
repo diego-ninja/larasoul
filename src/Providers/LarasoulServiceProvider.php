@@ -9,12 +9,12 @@ use Ninja\Larasoul\Api\Contracts\IDCheckInterface;
 use Ninja\Larasoul\Api\Contracts\ListInterface;
 use Ninja\Larasoul\Api\Contracts\PhoneInterface;
 use Ninja\Larasoul\Api\Contracts\SessionInterface;
-use Ninja\Larasoul\Enums\LivenessSession;
 use Ninja\Larasoul\Enums\VerisoulEnvironment;
 use Ninja\Larasoul\Models\RiskProfile;
+use Ninja\Larasoul\Models\UserVerification;
 use Ninja\Larasoul\Observers\RiskProfileObserver;
 use Ninja\Larasoul\Providers\Traits\RegistersVerificationMiddleware;
-use Ninja\Larasoul\Services\VerisoulManager;
+use Ninja\Larasoul\Services\VerisoulApi;
 use Ninja\Larasoul\Services\VerisoulSessionManager;
 
 class LarasoulServiceProvider extends ServiceProvider
@@ -26,8 +26,8 @@ class LarasoulServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../../config/larasoul.php', 'larasoul');
 
         // Register the main manager (existing)
-        $this->app->singleton(VerisoulManager::class, function ($app) {
-            return new VerisoulManager(
+        $this->app->singleton(VerisoulApi::class, function ($app) {
+            return new VerisoulApi(
                 apiKey: config('larasoul.verisoul.api_key'),
                 environment: VerisoulEnvironment::from(config('larasoul.verisoul.environment')),
                 config: config('larasoul.verisoul')
@@ -46,7 +46,7 @@ class LarasoulServiceProvider extends ServiceProvider
         $this->registerClients();
 
         // Register facade aliases
-        $this->app->alias(VerisoulManager::class, 'verisoul');
+        $this->app->alias(VerisoulApi::class, 'verisoul');
     }
 
     public function boot(): void
@@ -73,22 +73,10 @@ class LarasoulServiceProvider extends ServiceProvider
         // Load routes (existing)
         $this->loadRoutesFrom(__DIR__.'/../../routes/larasoul.php');
 
-        // Register event listeners (new)
         $this->registerEventListeners();
-
-        // Register model bindings (new)
         $this->registerModelBindings();
-
-        // Register enum bindings
-        $this->registerEnumBindings();
-
-        // Register validation rules (new)
         $this->registerValidationRules();
-
-        // Register view composers (new)
         $this->registerViewComposers();
-
-        // Register blade directives (new)
         $this->registerBladeDirectives();
     }
 
@@ -98,37 +86,37 @@ class LarasoulServiceProvider extends ServiceProvider
     private function registerClients(): void
     {
         $this->app->bind(AccountInterface::class, function ($app) {
-            $manager = $app->make(VerisoulManager::class);
+            $manager = $app->make(VerisoulApi::class);
 
             return $manager->account();
         });
 
         $this->app->bind(SessionInterface::class, function ($app) {
-            $manager = $app->make(VerisoulManager::class);
+            $manager = $app->make(VerisoulApi::class);
 
             return $manager->session();
         });
 
         $this->app->bind(PhoneInterface::class, function ($app) {
-            $manager = $app->make(VerisoulManager::class);
+            $manager = $app->make(VerisoulApi::class);
 
             return $manager->phone();
         });
 
         $this->app->bind(ListInterface::class, function ($app) {
-            $manager = $app->make(VerisoulManager::class);
+            $manager = $app->make(VerisoulApi::class);
 
             return $manager->list();
         });
 
         $this->app->bind(FaceMatchInterface::class, function ($app) {
-            $manager = $app->make(VerisoulManager::class);
+            $manager = $app->make(VerisoulApi::class);
 
             return $manager->faceMatch();
         });
 
         $this->app->bind(IDCheckInterface::class, function ($app) {
-            $manager = $app->make(VerisoulManager::class);
+            $manager = $app->make(VerisoulApi::class);
 
             return $manager->idCheck();
         });
@@ -139,37 +127,6 @@ class LarasoulServiceProvider extends ServiceProvider
      */
     protected function registerEventListeners(): void
     {
-        /**
-        $this->app['events']->listen(
-            \Ninja\Larasoul\Events\HighRiskUserDetected::class,
-            \Ninja\Larasoul\Listeners\HandleHighRiskUser::class
-        );
-
-        $this->app['events']->listen(
-            \Ninja\Larasoul\Events\UserRiskVerificationCompleted::class,
-            \Ninja\Larasoul\Listeners\HandleVerificationCompleted::class
-        );
-
-        $this->app['events']->listen(
-            \Ninja\Larasoul\Events\UserRiskVerificationFailed::class,
-            \Ninja\Larasoul\Listeners\HandleVerificationFailed::class
-        );
-
-        $this->app['events']->listen(
-            \Ninja\Larasoul\Events\ManualReviewRequired::class,
-            \Ninja\Larasoul\Listeners\HandleManualReviewRequired::class
-        );
-
-        $this->app['events']->listen(
-            \Ninja\Larasoul\Events\FraudAttemptDetected::class,
-            \Ninja\Larasoul\Listeners\HandleFraudAttempt::class
-        );
-
-        $this->app['events']->listen(
-            \Ninja\Larasoul\Events\UserRiskVerificationExpired::class,
-            \Ninja\Larasoul\Listeners\HandleVerificationExpired::class
-        );
-         **/
 
         // Login
         $this->app['events']->listen(
@@ -192,19 +149,14 @@ class LarasoulServiceProvider extends ServiceProvider
         // Allow custom user verification model
         $this->app->bind(
             RiskProfile::class,
-            config('larasoul.verification.models.user_verification', RiskProfile::class)
+            config('larasoul.verification.models.risk_profile', RiskProfile::class)
         );
-    }
 
-    /**
-     * Register enum bindings for route parameters
-     */
-    protected function registerEnumBindings(): void
-    {
-        // Register LivenessSession enum binding
-        $this->app['router']->bind('sessionType', function ($value) {
-            return LivenessSession::tryFrom($value) ?: abort(404);
-        });
+        $this->app->bind(
+            UserVerification::class,
+            config('larasoul.verification.models.user_verification', UserVerification::class)
+        );
+
     }
 
     /**
@@ -301,7 +253,7 @@ class LarasoulServiceProvider extends ServiceProvider
     public function provides(): array
     {
         return [
-            VerisoulManager::class,
+            VerisoulApi::class,
             'verisoul',
         ];
     }

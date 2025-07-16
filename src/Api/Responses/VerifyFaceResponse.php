@@ -6,6 +6,7 @@ use Bag\Attributes\MapInputName;
 use Bag\Attributes\MapOutputName;
 use Bag\Mappers\SnakeCase;
 use Illuminate\Support\Collection;
+use Ninja\Larasoul\Collections\RiskSignalCollection;
 use Ninja\Larasoul\DTO\DeviceNetworkSignals;
 use Ninja\Larasoul\DTO\Matches;
 use Ninja\Larasoul\DTO\Metadata;
@@ -15,6 +16,7 @@ use Ninja\Larasoul\DTO\SessionData;
 use Ninja\Larasoul\Enums\RiskFlag;
 use Ninja\Larasoul\Enums\RiskLevel;
 use Ninja\Larasoul\Enums\VerisoulDecision;
+use Ninja\Larasoul\ValueObjects\RiskScore;
 
 #[MapInputName(SnakeCase::class)]
 #[MapOutputName(SnakeCase::class)]
@@ -26,7 +28,7 @@ final readonly class VerifyFaceResponse extends ApiResponse
     public function __construct(
         public Metadata $metadata,
         public VerisoulDecision $decision,
-        public float $riskScore,
+        public RiskScore $riskScore,
         public Collection $riskFlags,
         public DeviceNetworkSignals $deviceNetworkSignals,
         public ReferringSessionSignals $referringSessionSignals,
@@ -41,7 +43,7 @@ final readonly class VerifyFaceResponse extends ApiResponse
     public function isSuccessful(): bool
     {
         return $this->decision === VerisoulDecision::Real &&
-            $this->riskScore <= 0.3 &&
+            $this->riskScore->isLow() &&
             ! $this->hasBlockingRiskFlags();
     }
 
@@ -51,7 +53,7 @@ final readonly class VerifyFaceResponse extends ApiResponse
     public function shouldReject(): bool
     {
         return $this->decision === VerisoulDecision::Fake ||
-            $this->riskScore >= 0.8 ||
+            $this->riskScore->isHigh() ||
             $this->hasBlockingRiskFlags();
     }
 
@@ -61,7 +63,7 @@ final readonly class VerifyFaceResponse extends ApiResponse
     public function requiresManualReview(): bool
     {
         return $this->decision === VerisoulDecision::Suspicious ||
-            ($this->riskScore >= 0.4 && $this->riskScore < 0.8) ||
+            $this->riskScore->isBetween(0.4, 0.8) ||
             $this->hasModerateRiskFlags();
     }
 
@@ -129,5 +131,16 @@ final readonly class VerifyFaceResponse extends ApiResponse
     public function getRiskFlagsAsStrings(): array
     {
         return $this->riskFlags->map(fn (RiskFlag $flag) => $flag->value)->toArray();
+    }
+
+    /**
+     * Get all risk signals as a unified collection
+     */
+    public function getRiskSignals(): RiskSignalCollection
+    {
+        return RiskSignalCollection::fromVerisoulSignals(
+            deviceNetworkSignals: $this->deviceNetworkSignals,
+            referringSessionSignals: $this->referringSessionSignals
+        );
     }
 }

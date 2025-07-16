@@ -4,14 +4,12 @@ namespace Ninja\Larasoul\Traits;
 
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Ninja\Larasoul\Enums\RiskLevel;
-use Ninja\Larasoul\Enums\RiskStatus;
 use Ninja\Larasoul\Enums\VerisoulDecision;
 use Ninja\Larasoul\Models\RiskProfile;
+use Ninja\Larasoul\ValueObjects\RiskScore;
 
 trait HasRiskProfile
 {
-
-
     /**
      * Get the user's verification profile
      */
@@ -33,57 +31,33 @@ trait HasRiskProfile
         return $this->riskProfile()->first();
     }
 
-    /**
-     * Check if user is verified
-     */
-    public function isVerified(): bool
-    {
-        return $this->riskProfile?->isVerified() ?? false;
-    }
-
     public function isExpired(): bool
     {
         return $this->riskProfile?->isExpired() ?? false;
     }
 
     /**
-     * Check if user is fully verified (all verification types)
+     * Check if user's risk profile is assessed
      */
-    public function isFullyVerified(): bool
+    public function isRiskAssessed(): bool
     {
-        return $this->riskProfile?->isFullyVerified() ?? false;
+        return $this->riskProfile?->isAssessed() ?? false;
     }
 
     /**
-     * Check if user has face verification
+     * Check if user's risk profile is expired
      */
-    public function hasFaceVerification(): bool
+    public function needsRiskAssessment(): bool
     {
-        return $this->riskProfile?->hasFaceVerification() ?? false;
-    }
-
-    /**
-     * Check if user has phone verification
-     */
-    public function hasPhoneVerification(): bool
-    {
-        return $this->riskProfile?->hasPhoneVerification() ?? false;
-    }
-
-    /**
-     * Check if user has identity verification
-     */
-    public function hasIdentityVerification(): bool
-    {
-        return $this->riskProfile?->hasIdentityVerification() ?? false;
+        return $this->riskProfile?->isExpired() ?? false;
     }
 
     /**
      * Get user's risk score
      */
-    public function getRiskScore(): float
+    public function getRiskScore(): ?RiskScore
     {
-        return $this->riskProfile?->score ?? 1.0;
+        return $this->riskProfile?->risk_score;
     }
 
     /**
@@ -159,51 +133,66 @@ trait HasRiskProfile
     }
 
     /**
-     * Get verification status
+     * Get risk assessment date
      */
-    public function getRiskStatus(): RiskStatus
+    public function getRiskAssessmentDate(): ?string
     {
-        return $this->riskProfile?->status ?? RiskStatus::Pending;
+        return $this->riskProfile?->assessed_at;
     }
 
     /**
-     * Get last risk check date
+     * Check if risk assessment is due
      */
-    public function getLastRiskCheckDate(): ?string
+    public function isRiskAssessmentDue(): bool
     {
-        return $this->riskProfile?->last_risk_check_at;
+        return $this->riskProfile?->needsAssessment() ?? true;
     }
 
     /**
-     * Check if risk check is due
+     * Get user's risk signals as RiskSignalCollection
      */
-    public function isRiskCheckDue(int $intervalDays = 30): bool
+    public function getRiskSignals(): ?\Ninja\Larasoul\Collections\RiskSignalCollection
     {
-        $lastCheck = $this->getLastRiskCheckDate();
-        if (! $lastCheck) {
-            return true;
-        }
-
-        return now()->diffInDays($lastCheck) >= $intervalDays;
+        return $this->riskProfile?->risk_signals;
     }
 
     /**
-     * Scope: Only verified users
+     * Scope: Only users with assessed risk profiles
      */
-    public function scopeVerified($query)
+    public function scopeRiskAssessed($query)
     {
         return $query->whereHas('riskProfile', function ($q) {
-            $q->where('status', RiskStatus::Verified);
+            $q->whereNotNull('assessed_at');
         });
     }
 
     /**
-     * Scope: Users requiring manual review
+     * Scope: Users with real risk profiles
      */
-    public function scopeRequiresManualReview($query)
+    public function scopeRealRisk($query)
     {
         return $query->whereHas('riskProfile', function ($q) {
-            $q->where('status', RiskStatus::ManualReview);
+            $q->where('decision', VerisoulDecision::Real);
+        });
+    }
+
+    /**
+     * Scope: Users with fake risk profiles
+     */
+    public function scopeFakeRisk($query)
+    {
+        return $query->whereHas('riskProfile', function ($q) {
+            $q->where('decision', VerisoulDecision::Fake);
+        });
+    }
+
+    /**
+     * Scope: Users with suspicious risk profiles
+     */
+    public function scopeSuspiciousRisk($query)
+    {
+        return $query->whereHas('riskProfile', function ($q) {
+            $q->where('decision', VerisoulDecision::Suspicious);
         });
     }
 
@@ -213,7 +202,7 @@ trait HasRiskProfile
     public function scopeLowRisk($query)
     {
         return $query->whereHas('riskProfile', function ($q) {
-            $q->where('score', '<=', 0.3);
+            $q->where('risk_score', '<=', config('larasoul.verification.risk_thresholds.low'));
         });
     }
 
@@ -223,37 +212,28 @@ trait HasRiskProfile
     public function scopeHighRisk($query)
     {
         return $query->whereHas('riskProfile', function ($q) {
-            $q->where('score', '>=', 0.7);
+            $q->where('risk_score', '>=', config('larasoul.verification.risk_thresholds.medium'));
         });
     }
 
     /**
-     * Scope: Users with phone verification
+     * Scope: Users with expired risk profiles
      */
-    public function scopePhoneVerified($query)
+    public function scopeExpiredRisk($query)
     {
         return $query->whereHas('riskProfile', function ($q) {
-            $q->whereNotNull('phone_verified_at');
+            $q->where('expires_at', '<', now());
         });
     }
 
     /**
-     * Scope: Users with face verification
+     * Scope: Users needing risk assessment
      */
-    public function scopeFaceVerified($query)
+    public function scopeNeedsRiskAssessment($query)
     {
         return $query->whereHas('riskProfile', function ($q) {
-            $q->whereNotNull('face_verified_at');
-        });
-    }
-
-    /**
-     * Scope: Users with face verification
-     */
-    public function scopeIdentityVerified($query)
-    {
-        return $query->whereHas('riskProfile', function ($q) {
-            $q->whereNotNull('identity_verified_at');
+            $q->whereNull('assessed_at')
+                ->orWhere('expires_at', '<=', now());
         });
     }
 }

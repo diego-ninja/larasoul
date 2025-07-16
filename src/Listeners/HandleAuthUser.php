@@ -7,22 +7,18 @@ use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
-use Ninja\Larasoul\Api\Responses\AuthenticateSessionResponse;
 use Ninja\Larasoul\Contracts\RiskProfilable;
-use Ninja\Larasoul\Enums\RiskStatus;
-use Ninja\Larasoul\Enums\VerisoulDecision;
+use Ninja\Larasoul\Enums\RiskLevel;
+use Ninja\Larasoul\Enums\VerificationStatus;
 use Ninja\Larasoul\Events\HighRiskUserDetected;
-use Ninja\Larasoul\Events\ManualReviewRequired;
-use Ninja\Larasoul\Events\UserRiskVerificationCompleted;
-use Ninja\Larasoul\Events\UserRiskVerificationFailed;
 use Ninja\Larasoul\Models\RiskProfile;
-use Ninja\Larasoul\Services\VerisoulManager;
+use Ninja\Larasoul\Services\VerisoulApi;
 use Ninja\Larasoul\Services\VerisoulSessionManager;
 
 final readonly class HandleAuthUser
 {
     public function __construct(
-        private VerisoulManager $verisoulManager,
+        private VerisoulApi $verisoulManager,
         private VerisoulSessionManager $sessionManager
     ) {}
 
@@ -59,13 +55,22 @@ final readonly class HandleAuthUser
         );
 
         try {
-            if ($riskProfile->needsVerification()) {
+            if ($riskProfile->needsAssessment()) {
                 $response = $this->verisoulManager->session()->authenticate(
                     account: $user->getVerisoulAccount(),
                     sessionId: $sessionData['session_id']
                 );
 
-                $this->updateRiskProfile($riskProfile, $response);
+                $riskProfile->updateRiskAssessment(
+                    decision: $response->decision,
+                    riskLevel: RiskLevel::withScore($response->accountScore->value()),
+                    riskScore: $response->accountScore,
+                    riskSignals: $response->getRiskSignals(),
+                );
+
+                if ($riskProfile->isHighRisk()) {
+                    event(new HighRiskUserDetected($riskProfile));
+                }
             }
 
         } catch (Exception $e) {
@@ -76,74 +81,10 @@ final readonly class HandleAuthUser
             ]);
 
             $riskProfile->update([
-                'status' => RiskStatus::Pending,
+                'status' => VerificationStatus::Pending,
                 'failure_reason' => 'Verisoul authentication failed: '.$e->getMessage(),
                 'last_risk_check_at' => now(),
             ]);
-        }
-    }
-
-    /**
-     * Update risk profile with Verisoul response data
-     */
-    private function updateRiskProfile(RiskProfile $riskProfile, AuthenticateSessionResponse $response): void
-    {
-        $updateData = [
-            'decision' => $response->decision,
-            'score' => $response->accountScore,
-            'signals' => $response->getRiskSignals(),
-            'last_risk_check_at' => now(),
-        ];
-
-        // Update status based on decision
-        switch ($response->decision) {
-            case VerisoulDecision::Real:
-                $updateData['status'] = RiskStatus::Verified;
-                $updateData['verified_at'] = now();
-                $updateData['expires_at'] = now()->addMonths(config('larasoul.verification.expiry_months', 12));
-                break;
-
-            case VerisoulDecision::Fake:
-                $updateData['status'] = RiskStatus::Failed;
-                break;
-
-            case VerisoulDecision::Suspicious:
-                $updateData['status'] = RiskStatus::ManualReview;
-                break;
-
-            default:
-                $updateData['status'] = RiskStatus::Pending;
-        }
-
-        // Additional risk assessment based on score
-        if (isset($response->accountScore)) {
-            $score = $response->accountScore;
-
-            // High risk score should trigger manual review even if decision is Real
-            if ($score >= 0.7 && $updateData['status'] === RiskStatus::Verified) {
-                $updateData['status'] = RiskStatus::ManualReview;
-            }
-
-            // Very high risk should be marked as failed
-            if ($score >= 0.9) {
-                $updateData['status'] = RiskStatus::Failed;
-            }
-        }
-
-        $riskProfile->update($updateData);
-
-        // Fire additional events based on the decision
-        if ($updateData['status'] === RiskStatus::Failed) {
-            event(new UserRiskVerificationFailed($riskProfile));
-        } elseif ($updateData['status'] === RiskStatus::ManualReview) {
-            event(new ManualReviewRequired($riskProfile));
-        } elseif ($updateData['status'] === RiskStatus::Verified) {
-            event(new UserRiskVerificationCompleted($riskProfile));
-        }
-
-        // Check for high risk
-        if (isset($response->accountScore) && $response->accountScore >= 0.8) {
-            event(new HighRiskUserDetected($riskProfile));
         }
     }
 }

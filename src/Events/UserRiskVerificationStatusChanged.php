@@ -2,7 +2,7 @@
 
 namespace Ninja\Larasoul\Events;
 
-use Ninja\Larasoul\Enums\RiskStatus;
+use Ninja\Larasoul\Enums\VerificationStatus;
 use Ninja\Larasoul\Models\RiskProfile;
 
 /**
@@ -12,8 +12,8 @@ class UserRiskVerificationStatusChanged extends RiskVerificationEvent
 {
     public function __construct(
         public RiskProfile $riskProfile,
-        public RiskStatus|string $oldStatus,
-        public RiskStatus|string $newStatus
+        public VerificationStatus|string $oldStatus,
+        public VerificationStatus|string $newStatus
     ) {
         parent::__construct($riskProfile);
     }

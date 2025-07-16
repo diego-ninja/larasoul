@@ -6,7 +6,10 @@
     "autoload": {
         "psr-4": {
             "Ninja\\Larasoul\\": "src/"
-        }
+        },
+        "files": [
+          "functions.php"
+        ]
     },
     "authors": [
         {

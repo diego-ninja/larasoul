@@ -2,7 +2,7 @@
 
 namespace Ninja\Larasoul\Enums;
 
-enum RiskStatus: string
+enum VerificationStatus: string
 {
     case Pending = 'pending';
     case Verified = 'verified';

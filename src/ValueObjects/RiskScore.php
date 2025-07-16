@@ -2,46 +2,89 @@
 
 namespace Ninja\Larasoul\ValueObjects;
 
+use Bag\Bag;
 use Ninja\Larasoul\Enums\RiskLevel;
 
-final readonly class RiskScore
+final readonly class RiskScore extends Bag
 {
     public function __construct(
-        private float $value
-    ) {
-        if ($this->value < 0.0 || $this->value > 1.0) {
-            throw new \InvalidArgumentException('Risk score must be between 0.0 and 1.0');
-        }
+        public float $value
+    ) {}
+
+    public static function rules(): array
+    {
+        return [
+            'value' => 'required|numeric|min:0|max:1',
+        ];
     }
 
-    public static function from(float $value): self
+    public static function from(mixed ...$values): static
     {
-        return new self($value);
+        // Handle single value case (most common)
+        if (count($values) === 1) {
+            $value = $values[0];
+
+            if ($value instanceof self) {
+                return $value;
+            }
+
+            if (is_float($value) || is_int($value)) {
+                return new self((float) $value);
+            }
+
+            // Handle Bag format (array with 'value' key)
+            if (is_array($value) && isset($value['value'])) {
+                return new self((float) $value['value']);
+            }
+        }
+
+        // Fallback to parent Bag::from() for other cases
+        return parent::from(...$values);
     }
 
     public static function low(): self
     {
-        return new self(0.1);
+        return new self(config('larasoul.verification.risk_thresholds.low'));
     }
 
     public static function medium(): self
     {
-        return new self(0.5);
+        return new self(config('larasoul.verification.risk_thresholds.medium'));
     }
 
     public static function high(): self
     {
-        return new self(0.9);
+        return new self(config('larasoul.verification.risk_thresholds.high'));
     }
 
     public static function critical(): self
     {
-        return new self(1.0);
+        return new self(config('larasoul.verification.risk_thresholds.critical'));
     }
 
     public function value(): float
     {
         return $this->value;
+    }
+
+    public function isZero(): bool
+    {
+        return $this->value === 0.0;
+    }
+
+    public function isOne(): bool
+    {
+        return $this->value === 1.0;
+    }
+
+    public function isBetween(float $min, float $max): bool
+    {
+        return $this->value >= $min && $this->value <= $max;
+    }
+
+    public function isPositive(): bool
+    {
+        return $this->value > 0;
     }
 
     public function level(): RiskLevel

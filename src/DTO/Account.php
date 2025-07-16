@@ -7,6 +7,7 @@ use Bag\Attributes\MapOutputName;
 use Bag\Bag;
 use Bag\Mappers\SnakeCase;
 use Carbon\Carbon;
+use Ninja\Larasoul\Collections\RiskSignalCollection;
 
 #[MapInputName(SnakeCase::class)]
 #[MapOutputName(SnakeCase::class)]
@@ -23,6 +24,6 @@ final readonly class Account extends Bag
         public UniqueValues $uniqueDevices,
         public UniqueValues $uniqueNetworks,
         public Email $email,
-        public RiskSignalScore $riskSignalAverage,
+        public RiskSignalCollection $riskSignalAverage,
     ) {}
 }

@@ -172,7 +172,7 @@ abstract class Client implements VerisoulApi
 
             $duration = microtime(true) - $startTime;
             $this->logRequestSuccess($endpoint, $result, $duration, $requestId);
-            $this->recordMetrics($endpoint, $method, 200, $duration, true);
+            // $this->recordMetrics($endpoint, $method, 200, $duration, true);
 
             return $result;
 
@@ -181,7 +181,7 @@ abstract class Client implements VerisoulApi
             $this->logRequestError($endpoint, $e, $duration, $requestId);
 
             $statusCode = $e instanceof VerisoulApiException ? $e->statusCode : 0;
-            $this->recordMetrics($endpoint, $method, $statusCode, $duration, false);
+            // $this->recordMetrics($endpoint, $method, $statusCode, $duration, false);
 
             throw $e;
         }

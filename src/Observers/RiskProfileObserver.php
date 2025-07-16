@@ -4,7 +4,7 @@ namespace Ninja\Larasoul\Observers;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
-use Ninja\Larasoul\Enums\RiskStatus;
+use Ninja\Larasoul\Enums\VerificationStatus;
 use Ninja\Larasoul\Events\HighRiskUserDetected;
 use Ninja\Larasoul\Events\UserRiskVerificationCompleted;
 use Ninja\Larasoul\Events\UserRiskVerificationExpired;
@@ -22,8 +22,8 @@ class RiskProfileObserver
     {
         // Set default expiry if not set
         if (! $riskProfile->expires_at) {
-            $riskProfile->expires_at = now()->addMonths(
-                config('larasoul.verification.expiry_months', 12)
+            $riskProfile->expires_at = now()->addDays(
+                config('larasoul.verification.expirations.risk_assessment', 30)
             );
         }
     }
@@ -58,14 +58,14 @@ class RiskProfileObserver
             $newStatus = $riskProfile->status;
 
             // Auto-set verified_at timestamp
-            if ($newStatus === RiskStatus::Verified && ! $riskProfile->verified_at) {
+            if ($newStatus === VerificationStatus::Verified && ! $riskProfile->verified_at) {
                 $riskProfile->verified_at = now();
             }
 
             // Auto-set expiry for verified status
-            if ($newStatus === RiskStatus::Verified && ! $riskProfile->expires_at) {
-                $riskProfile->expires_at = now()->addMonths(
-                    config('larasoul.verification.expiry_months', 12)
+            if ($newStatus === VerificationStatus::Verified && ! $riskProfile->expires_at) {
+                $riskProfile->expires_at = now()->addDays(
+                    config('larasoul.verification.expirations.risk_assessment', 30)
                 );
             }
 
@@ -80,7 +80,7 @@ class RiskProfileObserver
         // Track risk score changes
         if ($riskProfile->isDirty('score')) {
             $oldScore = $riskProfile->getOriginal('score');
-            $newScore = $riskProfile->score;
+            $newScore = $riskProfile->risk_score;
 
             // Check for high risk detection
             if ($newScore >= 0.8 && ($oldScore < 0.8 || $oldScore === null)) {
@@ -88,7 +88,7 @@ class RiskProfileObserver
             }
 
             // Update last risk check
-            $riskProfile->last_risk_check_at = now();
+            $riskProfile->assessed_at = now();
         }
     }
 
@@ -100,14 +100,6 @@ class RiskProfileObserver
         // Clear user verification cache
         $this->clearUserRiskProfileCache($riskProfile->user_id);
 
-        // Handle status-specific actions
-        match ($riskProfile->status) {
-            RiskStatus::Verified => $this->handleVerificationCompleted($riskProfile),
-            RiskStatus::Failed => $this->handleVerificationFailed($riskProfile),
-            RiskStatus::ManualReview => $this->handleManualReviewRequired($riskProfile),
-            default => null,
-        };
-
         // Check for expiration
         if ($riskProfile->isExpired()) {
             Event::dispatch(new UserRiskVerificationExpired($riskProfile));
@@ -117,8 +109,7 @@ class RiskProfileObserver
         logger()->info('User verification updated', [
             'user_id' => $riskProfile->user_id,
             'risk_profile_id' => $riskProfile->id,
-            'status' => $riskProfile->status->value,
-            'score' => $riskProfile->score,
+            'risk_score' => $riskProfile->risk_score,
             'decision' => $riskProfile->decision?->value,
         ]);
     }

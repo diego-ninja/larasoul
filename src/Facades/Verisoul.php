@@ -3,14 +3,14 @@
 namespace Ninja\Larasoul\Facades;
 
 use Illuminate\Support\Facades\Facade;
+use Ninja\Larasoul\Api\Contracts\AccountInterface;
+use Ninja\Larasoul\Api\Contracts\FaceMatchInterface;
+use Ninja\Larasoul\Api\Contracts\IDCheckInterface;
+use Ninja\Larasoul\Api\Contracts\ListInterface;
 use Ninja\Larasoul\Api\Contracts\PhoneInterface;
 use Ninja\Larasoul\Api\Contracts\SessionInterface;
-use Ninja\Larasoul\Contracts\AccountInterface;
-use Ninja\Larasoul\Contracts\FaceMatchInterface;
-use Ninja\Larasoul\Contracts\IDCheckInterface;
-use Ninja\Larasoul\Contracts\ListInterface;
 use Ninja\Larasoul\Enums\VerisoulEnvironment;
-use Ninja\Larasoul\Services\VerisoulManager;
+use Ninja\Larasoul\Services\VerisoulApi;
 
 /**
  * @method static AccountInterface account()
@@ -28,6 +28,6 @@ class Verisoul extends Facade
 {
     protected static function getFacadeAccessor(): string
     {
-        return VerisoulManager::class;
+        return VerisoulApi::class;
     }
 }

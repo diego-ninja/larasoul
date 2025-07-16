@@ -37,9 +37,8 @@ abstract class RiskVerificationEvent
         return [
             'user_id' => $this->riskProfile->user_id,
             'risk_profile_id' => $this->riskProfile->id,
-            'status' => $this->riskProfile->status,
             'decision' => $this->riskProfile->decision?->value,
-            'score' => $this->riskProfile->score,
+            'risk_score' => $this->riskProfile->risk_score,
             'level' => $this->riskProfile->getRiskLevel(),
             'verified_types' => $this->riskProfile->getVerifiedTypes(),
             'timestamp' => now()->toISOString(),
