@@ -4,7 +4,7 @@
 [![PHP Version](https://img.shields.io/badge/php-%5E8.2-blue)](https://php.net/)
 [![Laravel Version](https://img.shields.io/badge/laravel-%5E12.0-red)](https://laravel.com/)
 
-> ⚠️ **Development Notice**: This package is currently in active development and may not be ready for production use. APIs and features may change without notice.
+> ⚠️ **Development Notice**: This package is currently in active development and may not be ready for production use. APIs and features may change without notice. Some features may or are incomplete or under review. Please use with caution and provide feedback on issues. As recommendation, use the `dev-main` branch for the latest features and fixes.
 
 Larasoul is a Laravel package that provides seamless integration with the Verisoul biometric verification API. It supports identity verification through face matching, ID document verification, liveness detection, and comprehensive risk assessment.
 
